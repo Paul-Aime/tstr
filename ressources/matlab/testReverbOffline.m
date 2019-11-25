@@ -2,23 +2,60 @@
 % T. Hueber - CNRS/GIPSA-lab
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+clear all; close all; clc; disp(datetime);
+
+% read the sample waveform
+filename='./MG_list1_sent381.wav';
+[x,Fs] = audioread(filename);
+
+
+% read the impulse response waveform
+impulse_resp_dict = [
+    "Five Colums";                  % 1
+    "Five Colums Long";             % 2
+    "French 18th Century Salon";    % 3
+    "Going Home";                   % 4
+    "In The Silo Revised";          % 5
+    "Narrow Bumpy Space";           % 6
+    "Nice Drum Room";               % 7
+    "Parking Garage";               % 8
+    "Rays";                         % 9
+    "Trig Room";                    % 10
+    ];
+file_idx = 3;% Convolutional reverb - Offline
+% T. Hueber - CNRS/GIPSA-lab
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 clear all;
 close all;
 
 % read the sample waveform
 filename='./MG_list1_sent381.wav';
-[x,Fs,bits] = wavread(filename);
+[x,Fs] = audioread(filename);
 
 
 % read the impulse response waveform
-filename='./IMreverbs1/Five Columns.wav';
-[imp,Fsimp,bitsimp] = wavread(filename);
+impulse_resp_dict = [
+    "Five Columns";                 % 1
+    "Five Columns Long";            % 2
+    "French 18th Century Salon";    % 3
+    "Going Home";                   % 4
+    "In The Silo Revised";          % 5
+    "Narrow Bumpy Space";           % 6
+    "Nice Drum Room";               % 7
+    "Parking Garage";               % 8
+    "Rays";                         % 9
+    "Trig Room";                    % 10
+    ];
+file_idx = 2;
+filename = "./IMreverbs1/" + impulse_resp_dict(file_idx) + ".wav"
+[imp,Fsimp] = audioread(filename);
 
 % Keep only one channel 
 imp_left = imp(:,1);
 
-M = length(imp_left);
-L = length(x);
+M = length(imp_left)
+L = length(x)
 
 step_fft = 1;
 

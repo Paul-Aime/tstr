@@ -49,8 +49,8 @@ void usage(void)
   exit(0);
 }
 
-int inout(void *outputBuffer, void *inputBuffer, unsigned int /*nBufferFrames*/,
-          double /*streamTime*/, RtAudioStreamStatus status, void *data)
+int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+          double streamTime, RtAudioStreamStatus status, void *data)
 {
   // Since the number of input and output channels is equal, we can do
   // a simple buffer copy operation here.
@@ -59,7 +59,14 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int /*nBufferFrames*/,
 
   unsigned int *bytes = (unsigned int *)data;
   memcpy(outputBuffer, inputBuffer, *bytes);
-  std::cout << "test" << std::endl;
+
+  // print infos
+  /*
+  std::cout << "nBufferFrames: " << nBufferFrames << std::endl;
+  std::cout << "streamTime: " << streamTime << std::endl;
+  */
+
+
   return 0;
 }
 
@@ -131,6 +138,12 @@ int main(int argc, char *argv[])
   try
   {
     adac.startStream();
+
+    // print options
+    std::cout << "options.flags: " << options.flags << std::endl;
+    std::cout << "options.numberOfBuffers: " << options.numberOfBuffers << std::endl;
+    std::cout << "options.streamName: " << options.streamName << std::endl;
+    std::cout << "options.priority: " << options.priority << std::endl;
 
     char input;
     std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << bufferFrames << ").\n";
