@@ -26,9 +26,7 @@ impulse_resp_dict = [
 file_idx = 10;
 filename = "./IMreverbs1/" + impulse_resp_dict(file_idx) + ".wav"
 [imp, Fsimp] = audioread(filename);
-
-% keep only one channel 
-imp_left = imp(:,1);
+imp_left = imp(:,1); % keep only one channel 
 
 K = length(x);        % total length of the signal
 M = length(imp_left); % impusle response length
