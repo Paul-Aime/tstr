@@ -1,36 +1,70 @@
 # Prerequisites
 *.d
 
-# Compiled Object files
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
 *.slo
 *.lo
-*.o
-*.obj
+
+# Linker output
+*.ilk
+*.map
+*.exp
 
 # Precompiled Headers
 *.gch
 *.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
 # Compiled Static libraries
-*.lai
-*.la
-*.a
 *.lib
+*.a
+*.la
+*.lo
+*.lai
+
+# Shared objects (inc. Windows DLLs)
+# / Compiled Dynamic libraries
+*.dll
+*.so
+*.so.*
+*.dylib
 
 # Executables
 *.exe
 *.out
 *.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Fortran module files
+*.mod
+*.smod
+
 
 # ------- Custom
 .vscode
 *.m~
+**/.DS_Store
