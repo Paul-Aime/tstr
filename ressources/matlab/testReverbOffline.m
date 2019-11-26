@@ -47,7 +47,7 @@ impulse_resp_dict = [
     "Rays";                         % 9
     "Trig Room";                    % 10
     ];
-file_idx = 2;
+file_idx = 10;
 filename = "./IMreverbs1/" + impulse_resp_dict(file_idx) + ".wav"
 [imp,Fsimp] = audioread(filename);
 
