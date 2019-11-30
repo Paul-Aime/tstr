@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/reverb.dir/src/main.cpp.o  -o reverb -Wl,-rpath,/home/paul/Documents/git_projects/tstr/build/libs/rtaudio-5.1.0 libs/rtaudio-5.1.0/librtaudio.so.6.1.0 -lasound -lpthread 

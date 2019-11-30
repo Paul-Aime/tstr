@@ -1,0 +1,55 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_71496/fast"
+/usr/bin/make -f CMakeFiles/cmTC_71496.dir/build.make CMakeFiles/cmTC_71496.dir/build
+make[1]: Entering directory '/home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_71496.dir/CheckSymbolExists.cxx.o
+/usr/bin/c++    -Wall    -o CMakeFiles/cmTC_71496.dir/CheckSymbolExists.cxx.o -c /home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp/CheckSymbolExists.cxx
+Linking CXX executable cmTC_71496
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_71496.dir/link.txt --verbose=1
+/usr/bin/c++   -Wall     CMakeFiles/cmTC_71496.dir/CheckSymbolExists.cxx.o  -o cmTC_71496 
+CMakeFiles/cmTC_71496.dir/CheckSymbolExists.cxx.o: In function `main':
+CheckSymbolExists.cxx:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_71496.dir/build.make:97: recipe for target 'cmTC_71496' failed
+make[1]: *** [cmTC_71496] Error 1
+make[1]: Leaving directory '/home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_71496/fast' failed
+make: *** [cmTC_71496/fast] Error 2
+
+File /home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp/CheckSymbolExists.cxx:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_5dbce/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5dbce.dir/build.make CMakeFiles/cmTC_5dbce.dir/build
+make[1]: Entering directory '/home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_5dbce.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++    -Wall -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_5dbce.dir/CheckFunctionExists.cxx.o -c /home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_5dbce
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5dbce.dir/link.txt --verbose=1
+/usr/bin/c++   -Wall -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_5dbce.dir/CheckFunctionExists.cxx.o  -o cmTC_5dbce -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_5dbce.dir/build.make:97: recipe for target 'cmTC_5dbce' failed
+make[1]: *** [cmTC_5dbce] Error 1
+make[1]: Leaving directory '/home/paul/Documents/git_projects/tstr/libs/rtaudio-5.1.0/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_5dbce/fast' failed
+make: *** [cmTC_5dbce/fast] Error 2
+
+
