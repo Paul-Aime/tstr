@@ -1,5 +1,6 @@
 # Made based on : https://medium.com/heuristics/c-application-development-part-3-cmakelists-txt-from-scratch-7678253e5e24
 # Might also read : https://medium.com/@onur.dundar1/cmake-tutorial-585dd180109b
+# And read that to use with vscode debugger : https://medium.com/audelabs/c-development-using-visual-studio-code-cmake-and-lldb-d0f13d38c563
 
 
 # --- cmake version to be used
@@ -15,6 +16,8 @@ project( tstr )
 # version you wish to build your project with. If you don’t
 # set anything, it will pick the best fit on its own.
 
+set( CMAKE_BUILD_TYPE Debug )
+
 
 # --- files
 # In this section we basically specify all the files and
@@ -23,7 +26,14 @@ project( tstr )
 # wish you can totally skip this section and use the file
 # names directly instead of the variables
 
-set(RTAUDIO_DIR "./libs/rtaudio-5.1.0")
+set( SOURCE_DIR "./src")
+set( INCLUDE_DIR "./include")
+set( SOURCE "${SOURCE_DIR}/main.cpp" )
+set( RTAUDIO_DIR "./libs/rtaudio-5.1.0" )
+set( AUDIOFILE_DIR "./libs/AudioFile-master" )
+
+get_filename_component(ROOT_DIR_NAME "${PROJECT_SOURCE_DIR}" NAME)
+
 
 # --- include
 # This command is used to specify the path of the include
@@ -32,7 +42,7 @@ set(RTAUDIO_DIR "./libs/rtaudio-5.1.0")
 # This will also include the header files from 3rd party
 # libraries.
 
-include_directories( ./include ./src ${RTAUDIO_DIR} )
+include_directories( ${INCLUDE_DIR} ${SOURCE_DIR} ${RTAUDIO_DIR} ${AUDIOFILE_DIR})
 
 
 # --- target
@@ -42,7 +52,7 @@ include_directories( ./include ./src ${RTAUDIO_DIR} )
 # source files same way as you do while compiling them
 # manually.
 
-add_executable( reverb ./src/main.cpp )
+add_executable( ${ROOT_DIR_NAME} ${SOURCE} )
 
 
 # --- external libs
@@ -52,5 +62,7 @@ add_executable( reverb ./src/main.cpp )
 # tell the compiler where exactly are these libraries
 # located.
 
+# Add directories with a CMakeLists.txt file
 add_subdirectory( ${RTAUDIO_DIR} )
-target_link_libraries( reverb rtaudio )
+
+target_link_libraries( ${ROOT_DIR_NAME} rtaudio )

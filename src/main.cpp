@@ -9,6 +9,7 @@
 /******************************************/
 
 #include "RtAudio.h"
+#include "AudioFile.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -72,7 +73,7 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 int main(int argc, char *argv[])
 {
 
-  std::string imp_resp_folder = "./IMreverbs1";
+  std::string imp_resp_folder = "./data/IMreverbs1";
   int imp_resp_idx = 3; // wrt to following strings array
   std::string imp_resp_names[10] = {
       "Five Colums",               // 0
@@ -87,6 +88,10 @@ int main(int argc, char *argv[])
       "Trig Room"                  // 9
   };
   std::string imp_resp_path = imp_resp_folder + "/" + imp_resp_names[imp_resp_idx] + ".wav";
+
+  AudioFile<double> audioFile;
+	audioFile.load(imp_resp_path);
+	audioFile.printSummary();
 
   unsigned int channels, fs, bufferBytes;
   unsigned int oDevice = 5, iDevice = 5;

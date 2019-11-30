@@ -2,32 +2,32 @@
 #include <sys/resource.h>
 #include <math.h>
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 double *_sintbl = 0;
 int maxfftsize = 0;
 int fft(double *x, double *y, const int m);
-  int ifft(double *x, double *y, const int m);
+int ifft(double *x, double *y, const int m);
 int fftr(double *x, double *y, const int m);
 int ifftr(double *x, double *y, const int l);
-  static int checkm(const int m);
+static int checkm(const int m);
 int get_nextpow2(int n);
 char *getmem(int leng, unsigned size);
 double *dgetmem(int leng);
 double get_process_time();
 
-
 ///////////////////////////////
 // FFT functions
 int get_nextpow2(int n)
 {
-  int k = 1;
-  while (k < n){
-    k *= 2;
-  }
+   int k = 1;
+   while (k < n)
+   {
+      k *= 2;
+   }
 
-  return k;
+   return k;
 }
 
 int fftr(double *x, double *y, const int m)
@@ -44,20 +44,21 @@ int fftr(double *x, double *y, const int m)
    /* separate even and odd  */
    xq = xp = x;
    yp = y;
-   for (i = mv2; --i >= 0;) {
+   for (i = mv2; --i >= 0;)
+   {
       *xp++ = *xq++;
       *yp++ = *xq++;
    }
 
-   if (fft(x, y, mv2) == -1)    /* m / 2 point fft */
+   if (fft(x, y, mv2) == -1) /* m / 2 point fft */
       return (-1);
-
 
    /***********************
    * SIN table generation *
    ***********************/
 
-   if ((_sintbl == 0) || (maxfftsize < m)) {
+   if ((_sintbl == 0) || (maxfftsize < m))
+   {
       tblsize = m - m / 4 + 1;
       arg = PI / m * 2;
       if (_sintbl != 0)
@@ -65,7 +66,7 @@ int fftr(double *x, double *y, const int m)
       _sintbl = sinp = dgetmem(tblsize);
       *sinp++ = 0;
       for (j = 1; j < tblsize; j++)
-         *sinp++ = sin(arg * (double) j);
+         *sinp++ = sin(arg * (double)j);
       _sintbl[m / 2] = 0;
       maxfftsize = m;
    }
@@ -83,7 +84,8 @@ int fftr(double *x, double *y, const int m)
    *xp = *xp + *yp;
    *(yp + mv2) = *yp = 0;
 
-   for (i = mv2, j = mv2 - 2; --i; j -= 2) {
+   for (i = mv2, j = mv2 - 2; --i; j -= 2)
+   {
       ++xp;
       ++yp;
       sinp += n;
@@ -99,7 +101,8 @@ int fftr(double *x, double *y, const int m)
    xq = x + m;
    yq = y + m;
 
-   for (i = mv2; --i;) {
+   for (i = mv2; --i;)
+   {
       *xp++ = *(--xq);
       *yp++ = -(*(--yq));
    }
@@ -117,7 +120,8 @@ int ifftr(double *x, double *y, const int l)
    xp = x;
    yp = y;
    i = l;
-   while (i--) {
+   while (i--)
+   {
       *xp++ /= l;
       *yp++ /= -l;
    }
@@ -125,16 +129,16 @@ int ifftr(double *x, double *y, const int l)
    return (0);
 }
 
-
 static int checkm(const int m)
 {
    int k;
 
-   for (k = 4; k <= m; k <<= 1) {
+   for (k = 4; k <= m; k <<= 1)
+   {
       if (k == m)
          return (0);
    }
-   fprintf(stderr, "fft : m must be a integer of power of 2! (m=%i)\n",m);
+   fprintf(stderr, "fft : m must be a integer of power of 2! (m=%i)\n", m);
 
    return (-1);
 }
@@ -161,7 +165,8 @@ int fft(double *x, double *y, const int m)
    * SIN table generation *
    ***********************/
 
-   if ((_sintbl == 0) || (maxfftsize < m)) {
+   if ((_sintbl == 0) || (maxfftsize < m))
+   {
       tblsize = m - m / 4 + 1;
       arg = PI / m * 2;
       if (_sintbl != 0)
@@ -169,7 +174,7 @@ int fft(double *x, double *y, const int m)
       _sintbl = sinp = dgetmem(tblsize);
       *sinp++ = 0;
       for (j = 1; j < tblsize; j++)
-         *sinp++ = sin(arg * (double) j);
+         *sinp++ = sin(arg * (double)j);
       _sintbl[m / 2] = 0;
       maxfftsize = m;
    }
@@ -177,17 +182,20 @@ int fft(double *x, double *y, const int m)
    lf = maxfftsize / m;
    lmx = m;
 
-   for (;;) {
+   for (;;)
+   {
       lix = lmx;
       lmx /= 2;
       if (lmx <= 1)
          break;
       sinp = _sintbl;
       cosp = _sintbl + maxfftsize / 4;
-      for (j = 0; j < lmx; j++) {
+      for (j = 0; j < lmx; j++)
+      {
          xp = &x[j];
          yp = &y[j];
-         for (li = lix; li <= m; li += lix) {
+         for (li = lix; li <= m; li += lix)
+         {
             t1 = *(xp) - *(xp + lmx);
             t2 = *(yp) - *(yp + lmx);
             *(xp) += *(xp + lmx);
@@ -205,7 +213,8 @@ int fft(double *x, double *y, const int m)
 
    xp = x;
    yp = y;
-   for (li = m / 2; li--; xp += 2, yp += 2) {
+   for (li = m / 2; li--; xp += 2, yp += 2)
+   {
       t1 = *(xp) - *(xp + 1);
       t2 = *(yp) - *(yp + 1);
       *(xp) += *(xp + 1);
@@ -222,8 +231,10 @@ int fft(double *x, double *y, const int m)
    yp = y;
    mv2 = m / 2;
    mm1 = m - 1;
-   for (lmx = 0; lmx < mm1; lmx++) {
-      if ((li = lmx - j) < 0) {
+   for (lmx = 0; lmx < mm1; lmx++)
+   {
+      if ((li = lmx - j) < 0)
+      {
          t1 = *(xp);
          t2 = *(yp);
          *(xp) = *(xp + li);
@@ -232,7 +243,8 @@ int fft(double *x, double *y, const int m)
          *(yp + li) = t2;
       }
       li = mv2;
-      while (li <= j) {
+      while (li <= j)
+      {
          j -= li;
          li /= 2;
       }
@@ -251,7 +263,8 @@ int ifft(double *x, double *y, const int m)
    if (fft(y, x, m) == -1)
       return (-1);
 
-   for (i = m; --i >= 0; ++x, ++y) {
+   for (i = m; --i >= 0; ++x, ++y)
+   {
       *x /= m;
       *y /= m;
    }
@@ -261,26 +274,28 @@ int ifft(double *x, double *y, const int m)
 
 double *dgetmem(int leng)
 {
-    return ( (double *)getmem(leng, sizeof(double)) );
+   return ((double *)getmem(leng, sizeof(double)));
 }
 
 char *getmem(int leng, unsigned size)
 {
-    char *p = NULL;
+   char *p = NULL;
 
-    if ((p = (char *)calloc(leng, size)) == NULL){
-        fprintf(stderr, "Memory allocation error !\n");
-        exit(3);
-    }
-    return (p);
+   if ((p = (char *)calloc(leng, size)) == NULL)
+   {
+      fprintf(stderr, "Memory allocation error !\n");
+      exit(3);
+   }
+   return (p);
 }
 
-double get_process_time() {
-    struct rusage usage;
-    if( 0 == getrusage(RUSAGE_SELF, &usage) ) {
-        return (double)(usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) +
-               (double)(usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) / 1.0e6;
-    }
-    return 0;
+double get_process_time()
+{
+   struct rusage usage;
+   if (0 == getrusage(RUSAGE_SELF, &usage))
+   {
+      return (double)(usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) +
+             (double)(usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) / 1.0e6;
+   }
+   return 0;
 }
-
