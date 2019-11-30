@@ -5,12 +5,19 @@
 - RtAudio
 	- Install ALSA Development Kit : `sudo apt-get install libasound-dev`
 	- [Download RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/)
-	- 
+	- Put it in `./libs` and install it
+	- Check in `./CmakeFileLists.txt` that `RTAUDIO_DIR` variable is correctly set to corresponding path.
 
-- Run duplex test :
-	- Check devices : `./test$ LD_LIBRARY_PATH=../.libs/ ./audioprobe`
-	- in `./tests/duplex.cpp`, in `main`, change `oDevice` and `iDevice` by suitables ID, based on `./audioprobe` output.
-	- `./test$ LD_LIBRARY_PATH=../.libs/ ./duplex 1 44100`
+## Usage
+
+```bash
+rm -rf build
+mkdir build
+cd build
+cmake ..
+make
+./reverb 1 44100
+```
 
 ## Effet *reverb* à convolution
 
