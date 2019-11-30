@@ -9,7 +9,6 @@
 /******************************************/
 
 #include "RtAudio.h"
-#include "AudioFile.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -17,12 +16,10 @@
 /*
 typedef char MY_TYPE;
 #define FORMAT RTAUDIO_SINT8
-*/
 
 typedef signed short MY_TYPE;
 #define FORMAT RTAUDIO_SINT16
 
-/*
 typedef S24 MY_TYPE;
 #define FORMAT RTAUDIO_SINT24
 
@@ -31,10 +28,18 @@ typedef signed long MY_TYPE;
 
 typedef float MY_TYPE;
 #define FORMAT RTAUDIO_FLOAT32
+*/
 
 typedef double MY_TYPE;
 #define FORMAT RTAUDIO_FLOAT64
-*/
+
+struct my_struct
+{
+  MY_TYPE *ir_buffer;
+  unsigned long ir_size;
+  unsigned long inout_buffer_size;
+  MY_TYPE *conv_buffer; // Size M-1
+};
 
 void usage(void)
 {
@@ -50,19 +55,32 @@ void usage(void)
   exit(0);
 }
 
-int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-          double streamTime, RtAudioStreamStatus status, void *data)
+int reverb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+           double streamTime, RtAudioStreamStatus status, void *data)
 {
   // Since the number of input and output channels is equal, we can do
   // a simple buffer copy operation here.
   if (status)
     std::cout << "Stream over/underflow detected." << std::endl;
 
-  unsigned int *bytes = (unsigned int *)data;
-  memcpy(outputBuffer, inputBuffer, *bytes);
+  struct my_struct *pdata = (struct my_struct *)data;
 
-  // print infos
-  /*
+  // TODO
+  // for loop 1:M-1
+  // output_buffer(n) = conv_samples(n) + conv_buffer(n) 
+
+  // TODO
+  // for loop M:L
+  // output_buffer(n) = conv_samples(n)
+
+  // TODO
+  // for loop L:L+M-1
+  // conv_buffer(n) = conv_samples(n) // ! NOT +=
+
+  // * TODO Then no memcpy needed if doinf like said up there, i think
+  // memcpy(outputBuffer, inputBuffer, p_impress->size);
+
+  /* // print infos
   std::cout << "nBufferFrames: " << nBufferFrames << std::endl;
   std::cout << "streamTime: " << streamTime << std::endl;
   */
@@ -72,31 +90,52 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 
 int main(int argc, char *argv[])
 {
+  /*
+  Store impulse response in a buffer
+  */
 
-  std::string imp_resp_folder = "./data/IMreverbs1";
-  int imp_resp_idx = 3; // wrt to following strings array
-  std::string imp_resp_names[10] = {
-      "Five Colums",               // 0
-      "Five Colums Long",          // 1
-      "French 18th Century Salon", // 2
-      "Going Home",                // 3
-      "In The Silo Revised",       // 4
-      "Narrow Bumpy Space",        // 5
-      "Nice Drum Room",            // 6
-      "Parking Garage",            // 7
-      "Rays",                      // 8
-      "Trig Room"                  // 9
-  };
-  std::string imp_resp_path = imp_resp_folder + "/" + imp_resp_names[imp_resp_idx] + ".wav";
+  char ir_path[] = "./data/impres";
+  FILE *ptr_ir_file;
+  long ir_size;
+  MY_TYPE *impres_buffer;
 
-  AudioFile<double> audioFile;
-	audioFile.load(imp_resp_path);
-	audioFile.printSummary();
-  
-  // Accessed samples by :
-  // audioFile.samples
+  // open file
+  ptr_ir_file = fopen(ir_path, "rb");
+  if (ptr_ir_file == NULL)
+  {
+    fputs("File error", stderr);
+    exit(1);
+  }
 
-  unsigned int channels, fs, bufferBytes;
+  // obtain file size
+  fseek(ptr_ir_file, 0, SEEK_END);
+  ir_size = ftell(ptr_ir_file) / sizeof(MY_TYPE); // TODO check for the division
+  fseek(ptr_ir_file, 0, SEEK_SET);
+
+  // allocate memory to contain the whole file
+  impres_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * ir_size);
+  if (impres_buffer == NULL)
+  {
+    fputs("Memory error", stderr);
+    exit(2);
+  }
+
+  // copy the file into the buffer
+  size_t result = fread(impres_buffer, sizeof(MY_TYPE), ir_size, ptr_ir_file);
+  if (result != ir_size)
+  {
+    fputs("Reading error", stderr);
+    exit(3);
+  }
+
+  fclose(ptr_ir_file);
+
+  /*
+  Create stream
+  */
+
+  // Parameters
+  unsigned int channels, fs;
   unsigned int oDevice = 5, iDevice = 5;
   unsigned int iOffset = 0, oOffset = 0;
 
@@ -143,10 +182,14 @@ int main(int argc, char *argv[])
   RtAudio::StreamOptions options;
   //options.flags |= RTAUDIO_NONINTERLEAVED;
 
-  bufferBytes = bufferFrames * channels * sizeof(MY_TYPE);
+  unsigned long bufferBytes = bufferFrames * channels * sizeof(MY_TYPE);
+
+  // creating structure containing data to be pass as arguments to the callback
+  struct my_struct data = {impres_buffer, ir_size, bufferBytes};
+
   try
   {
-    adac.openStream(&oParams, &iParams, FORMAT, fs, &bufferFrames, &inout, (void *)&bufferBytes, &options);
+    adac.openStream(&oParams, &iParams, FORMAT, fs, &bufferFrames, &reverb, (void *)&data, &options);
   }
   catch (RtAudioError &e)
   {
