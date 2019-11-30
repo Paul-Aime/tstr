@@ -92,6 +92,9 @@ int main(int argc, char *argv[])
   AudioFile<double> audioFile;
 	audioFile.load(imp_resp_path);
 	audioFile.printSummary();
+  
+  // Accessed samples by :
+  // audioFile.samples
 
   unsigned int channels, fs, bufferBytes;
   unsigned int oDevice = 5, iDevice = 5;

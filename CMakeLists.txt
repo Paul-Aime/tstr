@@ -30,7 +30,6 @@ set( SOURCE_DIR "./src")
 set( INCLUDE_DIR "./include")
 set( SOURCE "${SOURCE_DIR}/main.cpp" )
 set( RTAUDIO_DIR "./libs/rtaudio-5.1.0" )
-set( AUDIOFILE_DIR "./libs/AudioFile-master" )
 
 get_filename_component(ROOT_DIR_NAME "${PROJECT_SOURCE_DIR}" NAME)
 
@@ -42,7 +41,7 @@ get_filename_component(ROOT_DIR_NAME "${PROJECT_SOURCE_DIR}" NAME)
 # This will also include the header files from 3rd party
 # libraries.
 
-include_directories( ${INCLUDE_DIR} ${SOURCE_DIR} ${RTAUDIO_DIR} ${AUDIOFILE_DIR})
+include_directories( ${INCLUDE_DIR} ${SOURCE_DIR} ${RTAUDIO_DIR} )
 
 
 # --- target
