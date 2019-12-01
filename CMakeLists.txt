@@ -28,7 +28,7 @@ set( CMAKE_BUILD_TYPE Debug )
 
 set( SOURCE_DIR "./src")
 set( INCLUDE_DIR "./include")
-set( SOURCE "${SOURCE_DIR}/main.cpp" )
+set( SOURCE "${SOURCE_DIR}/main.cpp" "${SOURCE_DIR}/func.cpp" )
 set( RTAUDIO_DIR "./libs/rtaudio-5.1.0" )
 
 get_filename_component(ROOT_DIR_NAME "${PROJECT_SOURCE_DIR}" NAME)
@@ -46,7 +46,7 @@ include_directories( ${INCLUDE_DIR} ${SOURCE_DIR} ${RTAUDIO_DIR} )
 
 # --- target
 # This is the part where we tell CMake the name of the
-# output file, in our case we wish to name it as reverb.
+# output file, in our case we wish to name it as ${ROOT_DIR_NAME}.
 # Whatever files names follow after that are basically your
 # source files same way as you do while compiling them
 # manually.

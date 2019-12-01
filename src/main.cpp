@@ -8,96 +8,24 @@
 */
 /******************************************/
 
-#include "RtAudio.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
 
-/*
-typedef char MY_TYPE;
-#define FORMAT RTAUDIO_SINT8
+#include "func.h"
+#include "RtAudio.h"
 
-typedef signed short MY_TYPE;
-#define FORMAT RTAUDIO_SINT16
-
-typedef S24 MY_TYPE;
-#define FORMAT RTAUDIO_SINT24
-
-typedef signed long MY_TYPE;
-#define FORMAT RTAUDIO_SINT32
-
-typedef float MY_TYPE;
-#define FORMAT RTAUDIO_FLOAT32
-*/
-
-typedef double MY_TYPE;
-#define FORMAT RTAUDIO_FLOAT64
-
-struct my_struct
-{
-  MY_TYPE *ir_buffer;
-  unsigned long ir_size;
-  unsigned long inout_buffer_size;
-  MY_TYPE *conv_buffer; // Size M-1
-};
-
-void usage(void)
-{
-  // Error function in case of incorrect command-line
-  // argument specifications
-  std::cout << "\nuseage: duplex N fs <iDevice> <oDevice> <iChannelOffset> <oChannelOffset>\n";
-  std::cout << "    where N = number of channels,\n";
-  std::cout << "    fs = the sample rate,\n";
-  std::cout << "    iDevice = optional input device to use (default = 0),\n";
-  std::cout << "    oDevice = optional output device to use (default = 0),\n";
-  std::cout << "    iChannelOffset = an optional input channel offset (default = 0),\n";
-  std::cout << "    and oChannelOffset = optional output channel offset (default = 0).\n\n";
-  exit(0);
-}
-
-int reverb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-           double streamTime, RtAudioStreamStatus status, void *data)
-{
-  // Since the number of input and output channels is equal, we can do
-  // a simple buffer copy operation here.
-  if (status)
-    std::cout << "Stream over/underflow detected." << std::endl;
-
-  struct my_struct *pdata = (struct my_struct *)data;
-
-  // TODO
-  // for loop 1:M-1
-  // output_buffer(n) = conv_samples(n) + conv_buffer(n) 
-
-  // TODO
-  // for loop M:L
-  // output_buffer(n) = conv_samples(n)
-
-  // TODO
-  // for loop L:L+M-1
-  // conv_buffer(n) = conv_samples(n) // ! NOT +=
-
-  // * TODO Then no memcpy needed if doinf like said up there, i think
-  // memcpy(outputBuffer, inputBuffer, p_impress->size);
-
-  /* // print infos
-  std::cout << "nBufferFrames: " << nBufferFrames << std::endl;
-  std::cout << "streamTime: " << streamTime << std::endl;
-  */
-
-  return 0;
-}
+void usage(void);
 
 int main(int argc, char *argv[])
 {
   /*
   Store impulse response in a buffer
   */
-
   char ir_path[] = "./data/impres";
   FILE *ptr_ir_file;
-  long ir_size;
-  MY_TYPE *impres_buffer;
+  unsigned long ir_size;
+  MY_TYPE *ir_buffer;
 
   // open file
   ptr_ir_file = fopen(ir_path, "rb");
@@ -113,15 +41,15 @@ int main(int argc, char *argv[])
   fseek(ptr_ir_file, 0, SEEK_SET);
 
   // allocate memory to contain the whole file
-  impres_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * ir_size);
-  if (impres_buffer == NULL)
+  ir_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * ir_size);
+  if (ir_buffer == NULL)
   {
     fputs("Memory error", stderr);
     exit(2);
   }
 
   // copy the file into the buffer
-  size_t result = fread(impres_buffer, sizeof(MY_TYPE), ir_size, ptr_ir_file);
+  size_t result = fread(ir_buffer, sizeof(MY_TYPE), ir_size, ptr_ir_file);
   if (result != ir_size)
   {
     fputs("Reading error", stderr);
@@ -131,10 +59,23 @@ int main(int argc, char *argv[])
   fclose(ptr_ir_file);
 
   /*
+  Create a buffer for overlapping part of the convolution
+  */
+  MY_TYPE *conv_buffer;
+  unsigned long conv_buffer_size = ir_size - 1;
+  conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * conv_buffer_size);
+  if (conv_buffer == NULL)
+  {
+    fputs("Memory error", stderr);
+    exit(2);
+  }
+
+  /*
   Create stream
   */
 
   // Parameters
+  unsigned int bufferFrames = 512;
   unsigned int channels, fs;
   unsigned int oDevice = 5, iDevice = 5;
   unsigned int iOffset = 0, oOffset = 0;
@@ -150,6 +91,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  // Inline parameters
   channels = (unsigned int)atoi(argv[1]);
   fs = (unsigned int)atoi(argv[2]);
   if (argc > 3)
@@ -165,7 +107,6 @@ int main(int argc, char *argv[])
   adac.showWarnings(true);
 
   // Set the same number of channels for both input and output.
-  unsigned int bufferFrames = 512;
   RtAudio::StreamParameters iParams, oParams;
   iParams.deviceId = iDevice;
   iParams.nChannels = channels;
@@ -174,6 +115,7 @@ int main(int argc, char *argv[])
   oParams.nChannels = channels;
   oParams.firstChannel = oOffset;
 
+  // Set default devices if needed
   if (iDevice == 0)
     iParams.deviceId = adac.getDefaultInputDevice();
   if (oDevice == 0)
@@ -182,10 +124,9 @@ int main(int argc, char *argv[])
   RtAudio::StreamOptions options;
   //options.flags |= RTAUDIO_NONINTERLEAVED;
 
-  unsigned long bufferBytes = bufferFrames * channels * sizeof(MY_TYPE);
-
-  // creating structure containing data to be pass as arguments to the callback
-  struct my_struct data = {impres_buffer, ir_size, bufferBytes};
+  // Create structure containing data to be pass as arguments to the callback
+  //unsigned long bufferBytes = bufferFrames * channels * sizeof(MY_TYPE);
+  struct my_struct data = {ir_buffer, ir_size, conv_buffer, conv_buffer_size};
 
   try
   {
@@ -232,4 +173,18 @@ cleanup:
     adac.closeStream();
 
   return 0;
+}
+
+void usage(void)
+{
+  // Error function in case of incorrect command-line
+  // argument specifications
+  std::cout << "\nuseage: duplex N fs <iDevice> <oDevice> <iChannelOffset> <oChannelOffset>\n";
+  std::cout << "    where N = number of channels,\n";
+  std::cout << "    fs = the sample rate,\n";
+  std::cout << "    iDevice = optional input device to use (default = 0),\n";
+  std::cout << "    oDevice = optional output device to use (default = 0),\n";
+  std::cout << "    iChannelOffset = an optional input channel offset (default = 0),\n";
+  std::cout << "    and oChannelOffset = optional output channel offset (default = 0).\n\n";
+  exit(0);
 }
