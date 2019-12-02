@@ -1,9 +1,11 @@
 #include <iostream>
+#include <cstring> // memcpy
+
 #include "func.h"
 #include "RtAudio.h"
 
-int reverb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-           double streamTime, RtAudioStreamStatus status, void *data)
+int reverb_t(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+             double streamTime, RtAudioStreamStatus status, void *data)
 {
   // Since the number of input and output channels is equal, we can do
   // a simple buffer copy operation here.
@@ -71,6 +73,111 @@ int reverb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   return 0;
 }
 
+int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+              double streamTime, RtAudioStreamStatus status, void *data)
+{
+
+  // Check for over/under run
+  if (status)
+  {
+    std::cout << "Stream over/underflow detected." << std::endl;
+  }
+
+  // Cast
+  struct data_struct *pdata = (struct data_struct *)data;
+  MY_TYPE *outBuffer = (MY_TYPE *)outputBuffer;
+  MY_TYPE *inBuffer = (MY_TYPE *)inputBuffer;
+
+  // Short variables
+  unsigned long L = (unsigned long)nBufferFrames;
+  unsigned long M = (unsigned long)pdata->ir_size;
+
+  // Compute current buffer convolution
+  if (conv(inBuffer, L, pdata->ir_buffer, M, pdata->curr_conv_buffer, L + M - 1))
+  {
+    exit(1);
+  }
+
+  // Fill outBuffer
+  for (int i = 0; i < L; i++)
+  {
+    outBuffer[i] = pdata->curr_conv_buffer[i];
+    if (i<M-1)
+    {
+      outBuffer[i] += pdata->prev_conv_buffer[L+i];
+    }
+  }
+
+  // Fill futur prev_conv_buffer (overlapping part)
+  for (int i = 0; i < L+M-1; i++)
+  {
+    pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
+  }
+  
+  
+}
+
+int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+             double streamTime, RtAudioStreamStatus status, void *data)
+{
+}
+
+int inout(void *outputBuffer, void *inputBuffer, unsigned int /*nBufferFrames*/,
+          double /*streamTime*/, RtAudioStreamStatus status, void *data)
+{
+  // Since the number of input and output channels is equal, we can do
+  // a simple buffer copy operation here.
+  if (status)
+    std::cout << "Stream over/underflow detected." << std::endl;
+
+  unsigned int *bytes = (unsigned int *)data;
+  memcpy(outputBuffer, inputBuffer, *bytes);
+  return 0;
+}
+
+int conv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size)
+{
+
+  // Check for size
+  if (y_size != x_size + h_size - 1)
+  {
+    return 1;
+  }
+
+  // Declare variables for current conv limits
+  int kmin, kmax;
+
+  // Do the actual convolution
+  for (int n = 0; n < x_size + h_size - 1; n++)
+  {
+    y[n] = 0;
+
+    if (n > h_size)
+    {
+      kmin = n - h_size;
+    }
+    else
+    {
+      kmin = 0;
+    }
+    if (n <= x_size)
+    {
+      kmax = n; // Todo vérifier si -1
+    }
+    else
+    {
+      kmax = x_size; // Todo vérifier si -1
+    }
+
+    for (int k = kmin; k < kmax; k++)
+    {
+      y[n] += x[k] * h[n - k];
+    }
+  }
+
+  return 0;
+}
+
 MY_TYPE conv_sample(int idx, MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size)
 {
   MY_TYPE c = 0;
@@ -99,9 +206,4 @@ MY_TYPE conv_sample(int idx, MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsig
   }
 
   return c;
-}
-
-int reverb2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-           double streamTime, RtAudioStreamStatus status, void *data)
-{
 }

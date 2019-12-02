@@ -61,18 +61,6 @@ int main(int argc, char *argv[])
   fclose(ptr_ir_file);
 
   /*
-  Create a buffer for overlapping part of the convolution
-  */
-  MY_TYPE *conv_buffer;
-  unsigned long conv_buffer_size = ir_size - 1;
-  conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * conv_buffer_size);
-  if (conv_buffer == NULL)
-  {
-    fputs("Memory error", stderr);
-    exit(2);
-  }
-
-  /*
   Create stream
   */
 
@@ -128,11 +116,23 @@ int main(int argc, char *argv[])
 
   // Create structure containing data to be pass as arguments to the callback
   //unsigned long bufferBytes = bufferFrames * channels * sizeof(MY_TYPE);
-  struct my_struct data = {ir_buffer, ir_size, conv_buffer, conv_buffer_size};
+
+  MY_TYPE *curr_conv_buffer;
+  MY_TYPE *prev_conv_buffer;
+  curr_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size + bufferFrames - 1));
+  prev_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size + bufferFrames - 1));
+  if (curr_conv_buffer == NULL || prev_conv_buffer == NULL)
+  {
+    fputs("Memory error", stderr);
+    exit(2);
+  }
+
+  struct data_struct data = {
+      ir_buffer, ir_size, curr_conv_buffer, prev_conv_buffer};
 
   try
   {
-    adac.openStream(&oParams, &iParams, FORMAT, fs, &bufferFrames, &reverb, (void *)&data, &options);
+    adac.openStream(&oParams, &iParams, FORMAT, fs, &bufferFrames, &reverb_t2, (void *)&data, &options);
   }
   catch (RtAudioError &e)
   {
