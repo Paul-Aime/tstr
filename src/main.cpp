@@ -11,8 +11,10 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 #include "func.h"
+#include "somefunc.h"
 #include "RtAudio.h"
 
 void usage(void);

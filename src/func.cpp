@@ -20,7 +20,7 @@ int reverb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   unsigned long M = (unsigned long)pdata->ir_size;
   // unsigned long M_ = (unsigned long) pdata->conv_buffer_size; // = M-1
 
-  // TODO Compute current buffer convolution
+  // Compute current buffer convolution
   // Overlapping part with previous buffer
   // for loop 1:min(L, M-1)
   // output_buffer(n) = conv_samples(n) + conv_buffer(n)
@@ -99,4 +99,9 @@ MY_TYPE conv_sample(int idx, MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsig
   }
 
   return c;
+}
+
+int reverb2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+           double streamTime, RtAudioStreamStatus status, void *data)
+{
 }
