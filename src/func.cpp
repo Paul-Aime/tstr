@@ -102,19 +102,17 @@ int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   for (int i = 0; i < L; i++)
   {
     outBuffer[i] = pdata->curr_conv_buffer[i];
-    if (i<M-1)
+    if (i < M - 1)
     {
-      outBuffer[i] += pdata->prev_conv_buffer[L+i];
+      outBuffer[i] += pdata->prev_conv_buffer[L + i];
     }
   }
 
   // Fill futur prev_conv_buffer (overlapping part)
-  for (int i = 0; i < L+M-1; i++)
+  for (int i = 0; i < L + M - 1; i++)
   {
     pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
   }
-  
-  
 }
 
 int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
@@ -144,32 +142,18 @@ int conv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_
     return 1;
   }
 
-  // Declare variables for current conv limits
+  // Declare variables for current conv boundaries
   int kmin, kmax;
 
   // Do the actual convolution
   for (int n = 0; n < x_size + h_size - 1; n++)
   {
+    // Current conv boundaries
+    n < x_size - 1 ? kmax = n : kmax = x_size - 1;
+    n >= h_size ? kmin = n - (h_size - 1) : kmin = 0;
+
     y[n] = 0;
-
-    if (n > h_size)
-    {
-      kmin = n - h_size;
-    }
-    else
-    {
-      kmin = 0;
-    }
-    if (n <= x_size)
-    {
-      kmax = n; // Todo vérifier si -1
-    }
-    else
-    {
-      kmax = x_size; // Todo vérifier si -1
-    }
-
-    for (int k = kmin; k < kmax; k++)
+    for (int k = kmin; k <= kmax; k++)
     {
       y[n] += x[k] * h[n - k];
     }
