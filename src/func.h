@@ -39,8 +39,11 @@ struct data_struct
   MY_TYPE *ir_buffer;
   unsigned long ir_size; // size M
 
-  MY_TYPE *curr_conv_buffer;
-  MY_TYPE *prev_conv_buffer;
+  MY_TYPE *curr_conv_buffer; // L+M-1
+  MY_TYPE *prev_conv_buffer; // L+M-1
+
+  double *stats;
+  int statpos;
 };
 
 int reverb_t(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,

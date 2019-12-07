@@ -2,6 +2,7 @@
 #include <cstring> // memcpy
 
 #include "func.h"
+#include "somefunc.h"
 #include "RtAudio.h"
 
 int reverb_t(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
@@ -113,6 +114,10 @@ int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   {
     pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
   }
+
+  // Fill stats
+  // pdata->statpos += 1;
+  pdata->stats[++pdata->statpos] = get_process_time();
 }
 
 int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
