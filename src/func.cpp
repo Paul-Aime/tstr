@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring> // memcpy
+#include <cstdlib> // malloc, calloc, realloc, free
 
 #include "func.h"
 #include "somefunc.h"
@@ -116,8 +117,19 @@ int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   }
 
   // Fill stats
-  // pdata->statpos += 1;
-  pdata->stats[++pdata->statpos] = get_process_time();
+  if (++pdata->statpos >= pdata->stats_size) // The pdata->stats array is not tall enough
+  {
+    // Re-allocate memory for new array
+    pdata->stats = (double *)realloc(pdata->stats, 2 * pdata->stats_size * sizeof(double));
+    if (pdata->stats == NULL)
+    {
+      fputs("Memory re-allocation error", stderr);
+      exit(2);
+    }
+    // Update pdata->stats_size
+    pdata->stats_size = 2 * pdata->stats_size;
+  }
+  pdata->stats[pdata->statpos] = get_process_time();
 }
 
 int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,

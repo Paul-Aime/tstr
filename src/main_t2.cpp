@@ -16,6 +16,8 @@
 #include "func.h"
 #include "somefunc.h"
 #include "RtAudio.h"
+#include "mydef.h"
+#include "utils.h"
 
 void usage(void);
 void load_impulse_response(char *ir_path, MY_TYPE **ir_buffer, unsigned long *ir_size);
@@ -27,7 +29,6 @@ void configure_stream(int argc, char *argv[],
                       RtAudio::StreamParameters *iParams,
                       RtAudio::StreamParameters *oParams,
                       RtAudio *ptr_adac);
-double *ptime_to_pduration(double *ptime, int ptime_size);
 
 int main(int argc, char *argv[])
 {
@@ -67,12 +68,13 @@ int main(int argc, char *argv[])
     fputs("Memory error", stderr);
     exit(2);
   }
-  double stats[1000];
-  int statpos = -1;
+  unsigned long stats_size = 1024;
+  double *stats = (double *)malloc(sizeof(double) * stats_size);
+  unsigned long statpos = -1;
 
   struct data_struct data = {ir_buffer, ir_size,
                              curr_conv_buffer, prev_conv_buffer,
-                             stats, statpos};
+                             stats, stats_size, statpos};
 
   /*
   Open stream
@@ -126,14 +128,11 @@ cleanup:
 
   // TODO save stats in a csv file
   double buffer_len = double(bufferFrames) * 1. / (double(fs));
-  double *pduration = ptime_to_pduration(data.stats, data.statpos);
+  double *pduration = intervals<>(data.stats, data.statpos);
   std::cout << "Number of processed buffers: " << data.statpos - 1 << std::endl;
   std::cout << "Duration of a buffer: " << buffer_len << std::endl;
   std::cout << "Processing duration for each buffer: " << std::endl;
-  for (int i = 0; i < data.statpos - 1; i++)
-  {
-    std::cout << pduration[i] << ", ";
-  }
+  print_array<>(pduration, data.statpos - 1, 5, 50);
   std::cout << std::endl;
 
   return 0;
@@ -240,16 +239,4 @@ void configure_stream(int argc, char *argv[],
     iParams->deviceId = ptr_adac->getDefaultInputDevice();
   if (oDevice == 0)
     oParams->deviceId = ptr_adac->getDefaultOutputDevice();
-}
-
-double *ptime_to_pduration(double *ptime, int ptime_size)
-{
-  double *pduration = (double *)malloc(sizeof(double) * (ptime_size - 1));
-
-  for (int i = 0; i < ptime_size - 1; i++)
-  {
-    pduration[i] = ptime[i + 1] - ptime[i];
-  }
-
-  return pduration;
 }
