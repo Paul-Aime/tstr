@@ -18,5 +18,6 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int /*nBufferFrames*/,
 
 MY_TYPE conv_sample(int idx, MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size);
 int conv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size);
+int fconv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size);
 
 #endif

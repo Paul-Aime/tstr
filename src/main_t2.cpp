@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   */
   char ir_path[] = "./data/impres";
   MY_TYPE *ir_buffer;
-  unsigned long ir_size;
+  unsigned long ir_size = 4096;
 
   load_impulse_response(ir_path, &ir_buffer, &ir_size);
 
@@ -167,9 +167,12 @@ void load_impulse_response(char *ir_path, MY_TYPE **ir_buffer, unsigned long *ir
     exit(1);
   }
 
-  // obtain file size
-  fseek(ptr_ir_file, 0, SEEK_END);
-  *ir_size = ftell(ptr_ir_file) / sizeof(MY_TYPE);
+  if (ir_size == NULL) // obtain file size
+  {
+    fseek(ptr_ir_file, 0, SEEK_END);
+    *ir_size = ftell(ptr_ir_file) / sizeof(MY_TYPE);
+  }
+
   fseek(ptr_ir_file, 0, SEEK_SET);
 
   // allocate memory to contain the whole file
