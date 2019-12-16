@@ -1,5 +1,5 @@
 // Template functions implementations.
-// See https://stackoverflow.com/a/10632266 
+// See https://stackoverflow.com/a/10632266
 
 #ifndef UTILS_TCC
 #define UTILS_TCC
@@ -41,7 +41,7 @@ void print_array(T *arr, unsigned long size, int n_elt_per_row, int max_elt)
     {
         for (int i = 0; i < n_elt_per_row; i++)
         {
-            std::cout << arr[idx++] << ",\t";
+            std::cout << arr[idx++] << ", ";
         }
         std::cout << "\n "; // Alignement
     }
@@ -49,7 +49,7 @@ void print_array(T *arr, unsigned long size, int n_elt_per_row, int max_elt)
     // Print last row
     for (int i = 0; i < n_elt_last_row - 1; i++)
     {
-        std::cout << arr[idx++] << ",\t";
+        std::cout << arr[idx++] << ", ";
     }
     std::cout << arr[idx++] << ", ";
 
@@ -62,6 +62,19 @@ void print_array(T *arr, unsigned long size, int n_elt_per_row, int max_elt)
     {
         std::cout << "\b\b]" << std::endl;
     }
+}
+
+template <class T>
+T mean(T *arr, unsigned long arr_size)
+{
+    T mean = 0;
+    for (int i = 0; i < arr_size; i++)
+    {
+        mean += arr[i];
+    }
+
+    mean = mean / (T)arr_size;
+    return mean;
 }
 
 #endif

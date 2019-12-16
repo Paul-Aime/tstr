@@ -2,6 +2,7 @@
 #include <sys/resource.h>
 #include <math.h>
 #include <stdio.h>
+#include <cstdlib> // malloc, calloc, realloc, free, exit
 
 #include "somefunc.h"
 

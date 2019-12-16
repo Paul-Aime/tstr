@@ -26,11 +26,11 @@ set( CMAKE_BUILD_TYPE Debug )
 # wish you can totally skip this section and use the file
 # names directly instead of the variables
 
-set( SOURCE_MAIN "main_t2.cpp" )
+set( SOURCE_MAIN "main_timeit.cpp" )
 
 set( SOURCE_DIR "./src" )
 set( INCLUDE_DIR "./include" )
-set( SOURCE "${SOURCE_DIR}/${SOURCE_MAIN}" "${SOURCE_DIR}/func.cpp" "${SOURCE_DIR}/somefunc.cpp" )
+set( SOURCE "${SOURCE_DIR}/${SOURCE_MAIN}" "${SOURCE_DIR}/func.cpp" "${SOURCE_DIR}/somefunc.cpp" "${SOURCE_DIR}/utils.cpp")
 set( RTAUDIO_DIR "./libs/rtaudio-5.1.0" )
 
 get_filename_component( ROOT_DIR_NAME "${PROJECT_SOURCE_DIR}" NAME )

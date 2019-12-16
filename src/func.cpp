@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring> // memcpy
-#include <cstdlib> // malloc, calloc, realloc, free
+#include <cstdlib> // malloc, calloc, realloc, free, exit
+#include <cstdio>  // fputs, stderr
 
 #include "utils.h"
 #include "func.h"
@@ -118,7 +119,7 @@ int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   }
 
   // Fill stats
-  if (++pdata->statpos >= pdata->stats_size) // The pdata->stats array is not tall enough
+  if (pdata->statpos >= pdata->stats_size) // The pdata->stats array is not tall enough
   {
     // Re-allocate memory for new array
     pdata->stats = (double *)realloc(pdata->stats, 2 * pdata->stats_size * sizeof(double));
@@ -131,10 +132,11 @@ int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
     pdata->stats_size = 2 * pdata->stats_size;
   }
   pdata->stats[pdata->statpos] = get_process_time();
+  pdata->statpos++;
 }
 
 int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-              double streamTime, RtAudioStreamStatus status, void *data)
+             double streamTime, RtAudioStreamStatus status, void *data)
 {
   // Check for over/under run
   if (status)
