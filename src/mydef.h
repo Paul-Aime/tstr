@@ -41,6 +41,15 @@ struct data_struct
   double *stats;
   unsigned long stats_size;
   unsigned long statpos;
+
+  MY_TYPE *Xr;
+  MY_TYPE *Xi;
+  MY_TYPE *Hr;
+  MY_TYPE *Hi;
+  MY_TYPE *Yr;
+  MY_TYPE *Yi;
+
+  int fft_size;
 };
 
 #endif

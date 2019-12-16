@@ -26,11 +26,11 @@
 int main(int argc, char *argv[])
 {
   // Callback executed between input and ouput buffer
-  RtAudioCallback ptr_callback = &reverb_f;
+  RtAudioCallback ptr_callback = &reverb_f2;
 
   // Parameters
   unsigned int bufferFrames = 512;
-  unsigned long ir_size = 1024;
+  unsigned long ir_size = 4096*2*2;
 
   // Store impulse response in a buffer
   char ir_path[] = "./data/impres";
@@ -69,9 +69,18 @@ int main(int argc, char *argv[])
   double *stats = (double *)malloc(sizeof(double) * stats_size);
   unsigned long statpos = 0;
 
+  int fft_size = get_nextpow2(ir_size + bufferFrames - 1);
+  MY_TYPE *Xr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+  MY_TYPE *Xi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+  MY_TYPE *Yr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+  MY_TYPE *Yi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+  MY_TYPE *Hr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+  MY_TYPE *Hi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+
   struct data_struct data = {ir_buffer, ir_size,
                              curr_conv_buffer, prev_conv_buffer,
-                             stats, stats_size, statpos};
+                             stats, stats_size, statpos,
+                             Xr, Xi, Yr, Yi, Hr, Hi, fft_size};
 
   /*
   Open stream
@@ -132,7 +141,6 @@ cleanup:
   std::cout << "     Processing duration per buffer: " << std::endl;
   std::cout << std::endl;
   print_array<>(pduration, data.statpos, 5, 50);
-
 
   return 0;
 }

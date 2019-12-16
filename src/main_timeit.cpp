@@ -26,14 +26,14 @@
 int main(int argc, char *argv[])
 {
   // Callback executed between input and ouput buffer
-  RtAudioCallback ptr_callback = &reverb_t2;
+  RtAudioCallback ptr_callback = &reverb_f;
 
   // Parameters to analyse processing time
   int n_buff_size_min = 6; // linspace on input buffer size axis
-  int n_buff_size_max = 11;
+  int n_buff_size_max = 10;
   int n_buff_size = n_buff_size_max - n_buff_size_min + 1;
   int n_ir_size_min = 6; // linspace on impulse response buffer size axis
-  int n_ir_size_max = 16;
+  int n_ir_size_max = 12;
   int n_ir_size = n_ir_size_max - n_ir_size_min + 1;
   int n_buffers = 1000; // Number of buffer per point
 
@@ -204,8 +204,8 @@ int main(int argc, char *argv[])
   // --- Save stats as csv files
   std::ofstream csv_proc_duration;
   std::ofstream csv_n_proc_buffers;
-  csv_proc_duration.open("./out/proc_duration.csv");
-  csv_n_proc_buffers.open("./out/n_proc_buffers.csv");
+  csv_proc_duration.open("./out/proc_duration_tmp.csv");
+  csv_n_proc_buffers.open("./out/n_proc_buffers_tmp.csv");
   for (int m = 0; m < n_buff_size; m++)
   {
     for (int n = 0; n < n_ir_size; n++)
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
   csv_n_proc_buffers.close();
   // Header cols
   std::ofstream csv_cols_irs_size;
-  csv_cols_irs_size.open("./out/cols_irs_size.csv");
+  csv_cols_irs_size.open("./out/cols_irs_size_tmp.csv");
   for (int i = 0; i < n_ir_size; i++)
   {
     csv_cols_irs_size << irs_size[i] << ',';
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
   csv_cols_irs_size.close();
   // Header rows
   std::ofstream csv_rows_buffs_size;
-  csv_rows_buffs_size.open("./out/rows_buffs_size.csv");
+  csv_rows_buffs_size.open("./out/rows_buffs_size_tmp.csv");
   for (int i = 0; i < n_buff_size; i++)
   {
     csv_rows_buffs_size << buffs_size[i] << ',';
