@@ -44,7 +44,7 @@ step = 0;
 nb_step = K/L;
 for k = 1:L:K
     % compute convolution for buffer k and add it to previous computation
-    x_conv = x_conv + myconv(x(k:k+L-1), imp_left); % size (L+M-1, 1)
+    x_conv = x_conv + tconv(x(k:k+L-1), imp_left); % size (L+M-1, 1)
     
     % output totally computed part (output buffer)
     x_conv_tot(k:k+L-1) = x_conv(1:L);

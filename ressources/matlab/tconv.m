@@ -1,5 +1,5 @@
-function x_conv = myconv(x, h)
-%MYCONV Compute the convolution between signal x and impulse response h.
+function x_conv = tconv(x, h)
+%TCONV Compute the convolution between signal x and impulse response h.
 %
 % INPUTS
 %   x - size (L, 1)
