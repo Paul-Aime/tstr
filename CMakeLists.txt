@@ -2,6 +2,7 @@
 # Might also read : https://medium.com/@onur.dundar1/cmake-tutorial-585dd180109b
 # And read that to use with vscode debugger : https://medium.com/audelabs/c-development-using-visual-studio-code-cmake-and-lldb-d0f13d38c563
 
+set( CMAKE_CXX_STANDARD 11 )
 
 # --- cmake version to be used
 cmake_minimum_required( VERSION 3.0 )
