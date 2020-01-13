@@ -103,19 +103,36 @@ int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   }
 
   // Fill outBuffer
+  // for (int i = 0; i < L; i++)
+  // {
+  //   outBuffer[i] = pdata->curr_conv_buffer[i];
+  //   if (i < M - 1)
+  //   {
+  //     outBuffer[i] += pdata->prev_conv_buffer[L + i];
+  //   }
+  // }
+
+  // Fill futur prev_conv_buffer (overlapping part)
+  // for (int i = 0; i < L + M - 1; i++)
+  // {
+  //   pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i]; // TODO vérifier
+  // }
+
+  
+  //Fill outBuffer
   for (int i = 0; i < L; i++)
   {
     outBuffer[i] = pdata->curr_conv_buffer[i];
     if (i < M - 1)
     {
-      outBuffer[i] += pdata->prev_conv_buffer[L + i];
+      outBuffer[i] += pdata->prev_conv_buffer[i];
     }
-  }
 
-  // Fill futur prev_conv_buffer (overlapping part)
-  for (int i = 0; i < L + M - 1; i++)
-  {
-    pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i]; // TODO vérifier
+    if (i > L - 1)
+    {
+      pdata->prev_conv_buffer[i - (L - 1)] = pdata->curr_conv_buffer[i];
+    }
+    
   }
 
   // Fill stats
@@ -192,8 +209,9 @@ int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 }
 
 int reverb_f2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-             double streamTime, RtAudioStreamStatus status, void *data)
+              double streamTime, RtAudioStreamStatus status, void *data)
 {
+  //! This is the good
   // Check for over/under run
   if (status)
   {
@@ -217,19 +235,35 @@ int reverb_f2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   }
 
   // Fill outBuffer
+  // for (int i = 0; i < L; i++)
+  // {
+  //   outBuffer[i] = pdata->curr_conv_buffer[i];
+  //   if (i < M - 1)
+  //   {
+  //     outBuffer[i] += pdata->prev_conv_buffer[L + i];
+  //   }
+  // }
+
+  // Fill futur prev_conv_buffer (overlapping part)
+  // for (int i = 0; i < L + M - 1; i++)
+  // {
+  //   pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
+  // }
+
+  //Fill outBuffer
   for (int i = 0; i < L; i++)
   {
     outBuffer[i] = pdata->curr_conv_buffer[i];
     if (i < M - 1)
     {
-      outBuffer[i] += pdata->prev_conv_buffer[L + i];
+      outBuffer[i] += pdata->prev_conv_buffer[i];
     }
-  }
 
-  // Fill futur prev_conv_buffer (overlapping part)
-  for (int i = 0; i < L + M - 1; i++)
-  {
-    pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
+    if (i > L - 1)
+    {
+      pdata->prev_conv_buffer[i - (L - 1)] = pdata->curr_conv_buffer[i];
+    }
+    
   }
 
   // Fill stats
@@ -337,7 +371,7 @@ int fconv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY
   // TODO use buffer instead of allocating and free
 }
 
-int fconv2(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size, struct data_struct * data)
+int fconv2(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size, struct data_struct *data)
 {
   // Check for size
   if (y_size != x_size + h_size - 1)
@@ -346,22 +380,15 @@ int fconv2(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, M
   }
 
   // const int n_fft = (const int)get_nextpow2((unsigned long)y_size);
-  const int n_fft = (const int ) data->fft_size;
+  const int n_fft = (const int)data->fft_size;
 
-  // MY_TYPE *Xr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  memcpy(data->Xr, x, x_size * sizeof(MY_TYPE)); // TODO vérifier si mettre 0 sur la fin
-  // MY_TYPE *Xi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-
-  // MY_TYPE *Hr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  memcpy(data->Hr, h, h_size * sizeof(MY_TYPE)); // TODO vérifier si mettre 0 sur la fin
-  // MY_TYPE *Hi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
+  memcpy(data->Xr, x, x_size * sizeof(MY_TYPE));
+  memcpy(data->Hr, h, h_size * sizeof(MY_TYPE));
 
   fftr((double *)data->Xr, (double *)data->Xi, n_fft);
   fftr((double *)data->Hr, (double *)data->Hi, n_fft);
 
   // Multiply
-  // MY_TYPE *Yr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  // MY_TYPE *Yi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
   for (int i = 0; i < n_fft; i++)
   {
     data->Yr[i] = data->Xr[i] * data->Hr[i] - data->Xi[i] * data->Hi[i];

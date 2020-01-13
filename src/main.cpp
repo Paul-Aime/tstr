@@ -29,19 +29,17 @@ int main(int argc, char *argv[])
   RtAudioCallback ptr_callback = &reverb_f2;
 
   // Parameters
-  unsigned int bufferFrames = 512;
-  unsigned long ir_size = 4096*2*2;
+  unsigned int bufferFrames = 2048;
+  unsigned long ir_size = 0; // 0 to have full size
 
   // Store impulse response in a buffer
   char ir_path[] = "./data/impres";
   MY_TYPE *ir_buffer;
-  // unsigned long ir_size = 1024;
   load_impulse_response(ir_path, &ir_buffer, &ir_size);
 
   /*
   Configure stream
   */
-  // unsigned int bufferFrames = 512; // 512
   unsigned int channels, fs; // Inputs `argv[1]` and `argv[2]`
   unsigned int oDevice = 0, iDevice = 0;
   unsigned int oOffset = 0, iOffset = 0;
@@ -59,7 +57,7 @@ int main(int argc, char *argv[])
   Create structure containing data to be pass as arguments to the callback
   */
   MY_TYPE *curr_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size + bufferFrames - 1));
-  MY_TYPE *prev_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size + bufferFrames - 1));
+  MY_TYPE *prev_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size - 1)); // ? Bon ? 
   if (curr_conv_buffer == NULL || prev_conv_buffer == NULL)
   {
     fputs("Memory error", stderr);
@@ -74,8 +72,11 @@ int main(int argc, char *argv[])
   MY_TYPE *Xi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
   MY_TYPE *Yr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
   MY_TYPE *Yi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+
   MY_TYPE *Hr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
   MY_TYPE *Hi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+  // memcpy(Hr, ir_buffer, ir_size * sizeof(MY_TYPE));
+  // fftr((double *)Hr, (double *)Hi, fft_size);
 
   struct data_struct data = {ir_buffer, ir_size,
                              curr_conv_buffer, prev_conv_buffer,
@@ -138,9 +139,9 @@ cleanup:
   std::cout << "        Number of processed buffers: " << data.statpos << std::endl;
   std::cout << "               Duration of a buffer: " << buffer_len << std::endl;
   std::cout << "Mean processing duration per buffer: " << mean_duration << std::endl;
-  std::cout << "     Processing duration per buffer: " << std::endl;
-  std::cout << std::endl;
-  print_array<>(pduration, data.statpos, 5, 50);
+  // std::cout << "     Processing duration per buffer: " << std::endl;
+  // std::cout << std::endl;
+  // print_array<>(pduration, data.statpos, 5, 50);
 
   return 0;
 }

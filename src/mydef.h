@@ -36,7 +36,7 @@ struct data_struct
   unsigned long ir_size; // size M
 
   MY_TYPE *curr_conv_buffer; // L+M-1
-  MY_TYPE *prev_conv_buffer; // L+M-1
+  MY_TYPE *prev_conv_buffer; // M-1
 
   double *stats;
   unsigned long stats_size;
