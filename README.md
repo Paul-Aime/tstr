@@ -3,10 +3,10 @@
 ## Prerequisites
 
 - RtAudio
-	- Install ALSA Development Kit : `sudo apt-get install libasound-dev`
-	- [Download RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/)
-	- Put it in `./libs` and install it
-	- Check in `./CmakeFileLists.txt` that `RTAUDIO_DIR` variable is correctly set to corresponding path.
+  - Install ALSA Development Kit : `sudo apt-get install libasound-dev`
+  - [Download RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/)
+  - Put it in `./libs` and install it
+  - Check in `./CmakeFileLists.txt` that `RTAUDIO_DIR` variable is correctly set to corresponding path.
 
 ## Usage
 
@@ -16,9 +16,7 @@ mkdir build
 cd build
 cmake ..
 make
-./reverb 1 44100
+./${workspaceFolderBasename} 1 44100
 ```
 
-## Effet *reverb* à convolution
-
-## Effet de type *limiter*
+where `${workspaceFolderBasename}` might be `tstr` or `tstr-master`.
