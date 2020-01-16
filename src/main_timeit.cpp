@@ -31,9 +31,14 @@ int main(int argc, char *argv[])
   RtAudioCallback ptr_callback = &reverb_f;
 
   // Parameters to analyse processing time
-  int n_buffers = 50; // Number of buffer per point
-  unsigned int buffs_size[] = {128, 256, 512, 1024, 2048};
-  unsigned long irs_size[] = {100, 500, 1000, 2000, 3000, 5000};
+  int n_buffers = 100; // Number of buffer per point
+  unsigned int buffs_size[] = {128, 256, 512, 1024, 2048, 4096};
+  unsigned long irs_size[] = {300, 340, 380, 420, 460, 580, 660, 740,
+                              820, 900, 1200, 1400, 1600, 1800, 2000, 2300,
+                              2600, 2900, 3200, 3500, 4800, 5500, 6200, 6900,
+                              7600, 9000, 10000, 11000, 12000, 13000, 19000,
+                              22000, 25000, 28000, 31000, 38000, 43000, 48000,
+                              53000, 58000, 80000, 90000, 100000, 110000, 120000};
   int n_buff_size = sizeof(buffs_size) / sizeof(buffs_size[0]);
   int n_ir_size = sizeof(irs_size) / sizeof(irs_size[0]);
 
@@ -99,7 +104,7 @@ int main(int argc, char *argv[])
       memcpy(data.Hr, (double *)data.ir_buffer, data.ir_size * sizeof(double));
       fftr((double *)(data.Hr), (double *)(data.Hi), data.fft_size);
 
-      data.stats_size = 4096;
+      data.stats_size = 1024;
       data.stats = (double *)malloc(sizeof(double) * data.stats_size);
       data.statpos = -1;
 
@@ -133,9 +138,6 @@ int main(int argc, char *argv[])
                   << std::endl;
         exit(1);
       }
-
-      // Test RtAudio functionality for reporting latency.
-      std::cout << "\nStream latency = " << adac.getStreamLatency() << " frames" << std::endl;
 
       /*
       Start stream
@@ -196,6 +198,26 @@ int main(int argc, char *argv[])
 
       proc_duration[m][n] = mean_duration;
       n_proc_buffers[m][n] = (int)n_proc_buffs;
+
+      // Free memory
+      free(data.curr_conv_buffer);
+      data.curr_conv_buffer = NULL;
+      free(data.prev_conv_buffer);
+      data.prev_conv_buffer = NULL;
+      free(data.Xr);
+      data.Xr = NULL;
+      free(data.Xi);
+      data.Xi = NULL;
+      free(data.Yr);
+      data.Yr = NULL;
+      free(data.Yi);
+      data.Yi = NULL;
+      free(data.Hr);
+      data.Hr = NULL;
+      free(data.Hi);
+      data.Hi = NULL;
+      free(data.stats);
+      data.stats = NULL;
     }
   }
 
