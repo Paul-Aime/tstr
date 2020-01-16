@@ -27,7 +27,7 @@ set( CMAKE_BUILD_TYPE Debug )
 # wish you can totally skip this section and use the file
 # names directly instead of the variables
 
-set( SOURCE_MAIN "main.cpp" )
+set( SOURCE_MAIN "main_timeit.cpp" )
 
 set( SOURCE_DIR "./src" )
 set( INCLUDE_DIR "./include" )

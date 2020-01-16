@@ -156,14 +156,15 @@ cleanup: // TODO try to remove
 
   // Analyze timing
   double buffer_len = double(n_buffer_frames) * 1. / (double(fs));
-  double *pduration = intervals<>(data.stats, data.statpos + 1);
-  double mean_duration = mean(pduration, data.statpos + 1);
-  std::cout << "        Number of processed buffers: " << data.statpos + 1 << std::endl;
+  unsigned long n_proc_buffers = data.statpos + 1;
+  double *pduration = intervals<>(data.stats, n_proc_buffers);
+  double mean_duration = mean(pduration, n_proc_buffers);
+  std::cout << "        Number of processed buffers: " << n_proc_buffers << std::endl;
   std::cout << "               Duration of a buffer: " << buffer_len << std::endl;
   std::cout << "Mean processing duration per buffer: " << mean_duration << std::endl;
   // std::cout << "     Processing duration per buffer: " << std::endl;
   // std::cout << std::endl;
-  // print_array<>(pduration, data.statpos + 1, 5, 50);
+  // print_array<>(pduration, n_proc_buffers, 5, 50);
 
   return 0;
 }
