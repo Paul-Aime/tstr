@@ -3,7 +3,7 @@ from pprint import pprint
 
 def main():
     # Generate a suitable xspace for impulse buffer size.
-    puiss = np.array([[i, 2**i] for i in range(6, 17)])
+    puiss = np.array([[i, 2**i] for i in range(6, 18)])
     diff = puiss[1:, 1] - puiss[:-1, 1]
 
     print('\nPuissances:')
@@ -12,7 +12,7 @@ def main():
     print('\nDifférences:')
     pprint(diff)
 
-    n_pts_per_intvl = 3
+    n_pts_per_intvl = 5
     step = (diff/(n_pts_per_intvl+1)).astype(np.int)
 
     print('\nStep:')
