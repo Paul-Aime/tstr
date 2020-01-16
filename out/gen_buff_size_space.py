@@ -12,7 +12,7 @@ def main():
     print('\nDifférences:')
     pprint(diff)
 
-    n_pts_per_intvl = 5
+    n_pts_per_intvl = 3
     step = (diff/(n_pts_per_intvl+1)).astype(np.int)
 
     print('\nStep:')

@@ -28,17 +28,18 @@ int main(int argc, char *argv[])
   char ir_path[] = "./data/impres";
 
   // Callback executed between input and ouput buffer
-  RtAudioCallback ptr_callback = &reverb_f;
+  RtAudioCallback ptr_callback = &reverb_t;
 
   // Parameters to analyse processing time
   int n_buffers = 100; // Number of buffer per point
   unsigned int buffs_size[] = {128, 256, 512, 1024, 2048, 4096};
-  unsigned long irs_size[] = {300, 340, 380, 420, 460, 580, 660, 740,
-                              820, 900, 1200, 1400, 1600, 1800, 2000, 2300,
-                              2600, 2900, 3200, 3500, 4800, 5500, 6200, 6900,
-                              7600, 9000, 10000, 11000, 12000, 13000, 19000,
-                              22000, 25000, 28000, 31000, 38000, 43000, 48000,
-                              53000, 58000, 80000, 90000, 100000, 110000, 120000};
+  // unsigned int buffs_size[] = {128, 256};
+  unsigned long irs_size[] = {80, 100, 120, 160, 190, 220, 320,
+                              380, 440, 600, 700, 800, 1300, 1600,
+                              1900, 2500, 3000, 3500, 5100, 6100, 7100,
+                              10000, 12000, 14000, 20000, 24000, 28000, 41000,
+                              49000, 57000, 67000};
+
   int n_buff_size = sizeof(buffs_size) / sizeof(buffs_size[0]);
   int n_ir_size = sizeof(irs_size) / sizeof(irs_size[0]);
 
@@ -216,8 +217,8 @@ int main(int argc, char *argv[])
       data.Hr = NULL;
       free(data.Hi);
       data.Hi = NULL;
-      free(data.stats);
-      data.stats = NULL;
+      // free(data.stats);
+      // data.stats = NULL;
     }
   }
 
