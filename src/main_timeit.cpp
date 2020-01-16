@@ -31,13 +31,11 @@ int main(int argc, char *argv[])
   RtAudioCallback ptr_callback = &reverb_f;
 
   // Parameters to analyse processing time
-  int n_buff_size_min = 7; // linspace on input buffer size axis
-  int n_buff_size_max = 10;
-  int n_buff_size = n_buff_size_max - n_buff_size_min + 1;
-  int n_ir_size_min = 9; // linspace on impulse response buffer size axis
-  int n_ir_size_max = 14;
-  int n_ir_size = n_ir_size_max - n_ir_size_min + 1;
   int n_buffers = 50; // Number of buffer per point
+  unsigned int buffs_size[] = {128, 256, 512, 1024, 2048};
+  unsigned long irs_size[] = {100, 500, 1000, 2000, 3000, 5000};
+  int n_buff_size = sizeof(buffs_size) / sizeof(buffs_size[0]);
+  int n_ir_size = sizeof(irs_size) / sizeof(irs_size[0]);
 
   // 2D array to store durations
   double **proc_duration = (double **)malloc(sizeof(double *) * n_buff_size);
@@ -49,27 +47,14 @@ int main(int argc, char *argv[])
   for (int i = 0; i < n_buff_size; i++)
     n_proc_buffers[i] = (int *)malloc(n_ir_size * sizeof(int));
 
-  // 1D array to store buffers size
-  unsigned int *buffs_size = (unsigned int *)malloc(sizeof(unsigned int) * n_buff_size);
-
-  // 1D array to store impulse response size
-  unsigned long *irs_size = (unsigned long *)malloc(sizeof(unsigned long) * n_ir_size);
-
   // For loop on different (n_buffer_frames, ir_size) points
   for (int m = 0; m < n_buff_size; m++)
   {
-    unsigned int n_buffer_frames = pow(2., (double)(n_buff_size_min + m));
-    buffs_size[m] = n_buffer_frames;
+    unsigned int n_buffer_frames = buffs_size[m];
 
     for (int n = 0; n < n_ir_size; n++)
     {
-      unsigned long ir_size = pow(2., (double)(n_ir_size_min + n));
-      irs_size[n] = ir_size;
-
-      // Parameters
-      // char ir_path[] = "./data/impres";
-      // unsigned int n_buffer_frames = 2048;
-      // unsigned long ir_size = 60000; // 0 for full size
+      unsigned long ir_size = irs_size[n];
 
       /*
       Create structure containing data to be pass as arguments to the callback
@@ -165,10 +150,6 @@ int main(int argc, char *argv[])
         // Print parameters
         std::cout << "\n          ir_size: " << ir_size << std::endl;
         std::cout << "  n_buffer_frames: " << n_buffer_frames << std::endl;
-
-        // char input;
-        // std::cout << "\nRunning ... press <enter> to quit." << std::endl;
-        // std::cin.get(input);
 
         // Sleep for a while
         int sleep_for_ms = (int)(buffer_len * 1e3 * n_buffers);
