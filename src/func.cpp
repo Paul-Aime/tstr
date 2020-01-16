@@ -8,280 +8,6 @@
 #include "somefunc.h"
 #include "RtAudio.h"
 
-int reverb_t(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-             double streamTime, RtAudioStreamStatus status, void *data)
-{
-  // Since the number of input and output channels is equal, we can do
-  // a simple buffer copy operation here.
-  if (status)
-    std::cout << "Stream over/underflow detected." << std::endl;
-
-  struct my_struct *pdata = (struct my_struct *)data;
-
-  // cast
-  MY_TYPE *outBuffer = (MY_TYPE *)outputBuffer;
-  MY_TYPE *inBuffer = (MY_TYPE *)inputBuffer;
-
-  unsigned long L = (unsigned long)nBufferFrames;
-  unsigned long M = (unsigned long)pdata->ir_size;
-  // unsigned long M_ = (unsigned long) pdata->conv_buffer_size; // = M-1
-
-  // Compute current buffer convolution
-  // Overlapping part with previous buffer
-  // for loop 1:min(L, M-1)
-  // output_buffer(n) = conv_samples(n) + conv_buffer(n)
-  for (int i = 0; i < std::min(L, M - 1); i++)
-  {
-    outBuffer[i] = conv_sample(i, inBuffer, L, pdata->conv_buffer, M);
-    outBuffer[i] += pdata->conv_buffer[i];
-  }
-
-  // Non overlapping part (may be null)
-  // for loop min(L, M-1): L
-  // output_buffer(n) = conv_samples(n)
-  if (M - 1 < L)
-  {
-    for (int i = M - 1; i < L; i++)
-    {
-      outBuffer[i] = conv_sample(i, inBuffer, L, pdata->conv_buffer, M);
-    }
-  }
-
-  // TODO Save next buffer overlapping part
-  // if M-1 > L // le buffer_conv dépasse
-  // for loop n = 1: M-1 -L
-  // conv_buffer(n) = conv_buffer(L+n)
-  if (M - 1 > L)
-  {
-    for (int i = 0; i < M - 1 - L; i++)
-    {
-      pdata->conv_buffer[i] = pdata->conv_buffer[L + i];
-    }
-  }
-
-  // for loop n = 1:M-1
-  // conv_buffer(n) += conv_samples(L+n)
-  for (int i = 0; i < M - 1; i++)
-  {
-    pdata->conv_buffer[i] += conv_sample(L + i, inBuffer, L, pdata->conv_buffer, M);
-  }
-
-  // * Then no memcpy needed if doinf like said up there, i think
-  // memcpy(outputBuffer, inputBuffer, p_impress->size);
-
-  /* // print infos
-  std::cout << "nBufferFrames: " << nBufferFrames << std::endl;
-  std::cout << "streamTime: " << streamTime << std::endl;
-  */
-
-  return 0;
-}
-
-int reverb_t2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-              double streamTime, RtAudioStreamStatus status, void *data)
-{
-
-  // Check for over/under run
-  if (status)
-  {
-    std::cout << "Stream over/underflow detected." << std::endl;
-  }
-
-  // Cast
-  struct data_struct *pdata = (struct data_struct *)data;
-  MY_TYPE *outBuffer = (MY_TYPE *)outputBuffer;
-  MY_TYPE *inBuffer = (MY_TYPE *)inputBuffer;
-
-  // Short variables
-  unsigned long L = (unsigned long)nBufferFrames;
-  unsigned long M = (unsigned long)pdata->ir_size;
-
-  // Compute current buffer convolution
-  if (conv(inBuffer, L, pdata->ir_buffer, M, pdata->curr_conv_buffer, L + M - 1))
-  {
-    exit(1);
-  }
-
-  // Fill outBuffer
-  // for (int i = 0; i < L; i++)
-  // {
-  //   outBuffer[i] = pdata->curr_conv_buffer[i];
-  //   if (i < M - 1)
-  //   {
-  //     outBuffer[i] += pdata->prev_conv_buffer[L + i];
-  //   }
-  // }
-
-  // Fill futur prev_conv_buffer (overlapping part)
-  // for (int i = 0; i < L + M - 1; i++)
-  // {
-  //   pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i]; // TODO vérifier
-  // }
-
-  
-  //Fill outBuffer
-  for (int i = 0; i < L; i++)
-  {
-    outBuffer[i] = pdata->curr_conv_buffer[i];
-    if (i < M - 1)
-    {
-      outBuffer[i] += pdata->prev_conv_buffer[i];
-    }
-
-    if (i > L - 1)
-    {
-      pdata->prev_conv_buffer[i - (L - 1)] = pdata->curr_conv_buffer[i];
-    }
-    
-  }
-
-  // Fill stats
-  if (pdata->statpos >= pdata->stats_size) // The pdata->stats array is not tall enough
-  {
-    // Re-allocate memory for new array
-    pdata->stats = (double *)realloc(pdata->stats, 2 * pdata->stats_size * sizeof(double));
-    if (pdata->stats == NULL)
-    {
-      fputs("Memory re-allocation error", stderr);
-      exit(2);
-    }
-    // Update pdata->stats_size
-    pdata->stats_size = 2 * pdata->stats_size;
-  }
-  pdata->stats[pdata->statpos] = get_process_time();
-  pdata->statpos++;
-}
-
-int reverb_f(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-             double streamTime, RtAudioStreamStatus status, void *data)
-{
-  // Check for over/under run
-  if (status)
-  {
-    std::cout << "Stream over/underflow detected." << std::endl;
-  }
-
-  // Cast
-  struct data_struct *pdata = (struct data_struct *)data;
-  MY_TYPE *outBuffer = (MY_TYPE *)outputBuffer;
-  MY_TYPE *inBuffer = (MY_TYPE *)inputBuffer;
-
-  // Short variables
-  unsigned long L = (unsigned long)nBufferFrames;
-  unsigned long M = (unsigned long)pdata->ir_size;
-
-  // Compute current buffer convolution
-  if (fconv(inBuffer, L, pdata->ir_buffer, M, pdata->curr_conv_buffer, L + M - 1))
-  {
-    exit(1);
-  }
-
-  // Fill outBuffer
-  for (int i = 0; i < L; i++)
-  {
-    outBuffer[i] = pdata->curr_conv_buffer[i];
-    if (i < M - 1)
-    {
-      outBuffer[i] += pdata->prev_conv_buffer[L + i];
-    }
-  }
-
-  // Fill futur prev_conv_buffer (overlapping part)
-  for (int i = 0; i < L + M - 1; i++)
-  {
-    pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
-  }
-
-  // Fill stats
-  if (++pdata->statpos >= pdata->stats_size) // The pdata->stats array is not tall enough
-  {
-    // Re-allocate memory for new array
-    pdata->stats = (double *)realloc(pdata->stats, 2 * pdata->stats_size * sizeof(double));
-    if (pdata->stats == NULL)
-    {
-      fputs("Memory re-allocation error", stderr);
-      exit(2);
-    }
-    // Update pdata->stats_size
-    pdata->stats_size = 2 * pdata->stats_size;
-  }
-  pdata->stats[pdata->statpos] = get_process_time();
-}
-
-int reverb_f2(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-              double streamTime, RtAudioStreamStatus status, void *data)
-{
-  //! This is the good
-  // Check for over/under run
-  if (status)
-  {
-    std::cout << "Stream over/underflow detected." << std::endl;
-  }
-
-  // Cast
-  struct data_struct *pdata = (struct data_struct *)data;
-  MY_TYPE *outBuffer = (MY_TYPE *)outputBuffer;
-  MY_TYPE *inBuffer = (MY_TYPE *)inputBuffer;
-
-  // Short variables
-  unsigned long L = (unsigned long)nBufferFrames;
-  unsigned long M = (unsigned long)pdata->ir_size;
-
-  // Compute current buffer convolution
-  if (fconv2(inBuffer, L, pdata->ir_buffer, M, pdata->curr_conv_buffer, L + M - 1, pdata))
-  {
-    std::cout << "fconv2 failed" << std::endl;
-    exit(1);
-  }
-
-  // Fill outBuffer
-  // for (int i = 0; i < L; i++)
-  // {
-  //   outBuffer[i] = pdata->curr_conv_buffer[i];
-  //   if (i < M - 1)
-  //   {
-  //     outBuffer[i] += pdata->prev_conv_buffer[L + i];
-  //   }
-  // }
-
-  // Fill futur prev_conv_buffer (overlapping part)
-  // for (int i = 0; i < L + M - 1; i++)
-  // {
-  //   pdata->prev_conv_buffer[i] = pdata->curr_conv_buffer[i];
-  // }
-
-  //Fill outBuffer
-  for (int i = 0; i < L; i++)
-  {
-    outBuffer[i] = pdata->curr_conv_buffer[i];
-    if (i < M - 1)
-    {
-      outBuffer[i] += pdata->prev_conv_buffer[i];
-    }
-
-    if (i > L - 1)
-    {
-      pdata->prev_conv_buffer[i - (L - 1)] = pdata->curr_conv_buffer[i];
-    }
-    
-  }
-
-  // Fill stats
-  if (++pdata->statpos >= pdata->stats_size) // The pdata->stats array is not tall enough
-  {
-    // Re-allocate memory for new array
-    pdata->stats = (double *)realloc(pdata->stats, 2 * pdata->stats_size * sizeof(double));
-    if (pdata->stats == NULL)
-    {
-      fputs("Memory re-allocation error", stderr);
-      exit(2);
-    }
-    // Update pdata->stats_size
-    pdata->stats_size = 2 * pdata->stats_size;
-  }
-  pdata->stats[pdata->statpos] = get_process_time();
-}
-
 int inout(void *outputBuffer, void *inputBuffer, unsigned int /*nBufferFrames*/,
           double /*streamTime*/, RtAudioStreamStatus status, void *data)
 {
@@ -295,7 +21,7 @@ int inout(void *outputBuffer, void *inputBuffer, unsigned int /*nBufferFrames*/,
   return 0;
 }
 
-int conv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size)
+int tconv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size)
 {
 
   // Check for size
@@ -324,120 +50,201 @@ int conv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_
   return 0;
 }
 
-int fconv(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size)
+int fconv(MY_TYPE *x, unsigned long x_size, MY_TYPE *y, unsigned long y_size, struct data_struct *pdata)
 {
   // Check for size
-  if (y_size != x_size + h_size - 1)
+  if (y_size != x_size + pdata->ir_size - 1)
   {
     return 1;
   }
 
-  const int n_fft = (const int)get_nextpow2((unsigned long)y_size);
+  memcpy(pdata->Xr, (double *)x, x_size * sizeof(double));
 
-  MY_TYPE *Xr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  memcpy(Xr, x, x_size * sizeof(MY_TYPE)); // TODO vérifier si mettre 0 sur la fin
-  MY_TYPE *Xi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-
-  MY_TYPE *Hr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  memcpy(Hr, h, h_size * sizeof(MY_TYPE)); // TODO vérifier si mettre 0 sur la fin
-  MY_TYPE *Hi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-
-  fftr((double *)Xr, (double *)Xi, n_fft);
-  fftr((double *)Hr, (double *)Hi, n_fft);
-
-  // Multiply
-  MY_TYPE *Yr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  MY_TYPE *Yi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * n_fft);
-  for (int i = 0; i < n_fft; i++)
-  {
-    Yr[i] = Xr[i] * Hr[i] - Xi[i] * Hi[i];
-    Yi[i] = Xr[i] * Hi[i] + Xi[i] * Hr[i];
-  }
-
-  // IFFT
-  ifft(Yr, Yi, n_fft);
-
-  // Keep only y_size points
-  memcpy(y, Yr, y_size * sizeof(MY_TYPE));
-
-  // Free space
-  free(Xr);
-  free(Xi);
-  free(Hr);
-  free(Hi);
-  free(Yr);
-  free(Yi);
-
-  // TODO use buffer instead of allocating and free
-}
-
-int fconv2(MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size, MY_TYPE *y, unsigned long y_size, struct data_struct *data)
-{
-  // Check for size
-  if (y_size != x_size + h_size - 1)
-  {
-    return 1;
-  }
-
-  // const int n_fft = (const int)get_nextpow2((unsigned long)y_size);
-  const int n_fft = (const int)data->fft_size;
-
-  memcpy(data->Xr, x, x_size * sizeof(MY_TYPE));
-  memcpy(data->Hr, h, h_size * sizeof(MY_TYPE));
-
-  fftr((double *)data->Xr, (double *)data->Xi, n_fft);
-  fftr((double *)data->Hr, (double *)data->Hi, n_fft);
+  // FFT
+  const int n_fft = (const int)pdata->fft_size;
+  fftr(pdata->Xr, pdata->Xi, n_fft);
 
   // Multiply
   for (int i = 0; i < n_fft; i++)
   {
-    data->Yr[i] = data->Xr[i] * data->Hr[i] - data->Xi[i] * data->Hi[i];
-    data->Yi[i] = data->Xr[i] * data->Hi[i] + data->Xi[i] * data->Hr[i];
+    pdata->Yr[i] = pdata->Xr[i] * pdata->Hr[i] - pdata->Xi[i] * pdata->Hi[i];
+    pdata->Yi[i] = pdata->Xr[i] * pdata->Hi[i] + pdata->Xi[i] * pdata->Hr[i];
   }
 
   // IFFT
-  ifft(data->Yr, data->Yi, n_fft);
+  ifft(pdata->Yr, pdata->Yi, n_fft);
 
   // Keep only y_size points
-  memcpy(y, data->Yr, y_size * sizeof(MY_TYPE));
+  memcpy(y, (MY_TYPE *)pdata->Yr, y_size * sizeof(MY_TYPE));
 
-  // Free space
-  // free(Xr);
-  // free(Xi);
-  // free(Hr);
-  // free(Hi);
-  // free(Yr);
-  // free(Yi);
   return 0;
-  // TODO use buffer instead of allocating and free
 }
 
-MY_TYPE conv_sample(int idx, MY_TYPE *x, unsigned long x_size, MY_TYPE *h, unsigned long h_size)
+int reverb_t(void *output_buffer, void *input_buffer, unsigned int n_buffer_frames,
+              double streamTime, RtAudioStreamStatus status, void *data)
 {
-  MY_TYPE c = 0;
-  int kmin;
-  int kmax;
-  if (idx > h_size)
+  // Check for over/under run
+  // if (status)
+  // {
+  //   std::cout << "Stream over/underflow detected." << std::endl;
+  // }
+
+  // Cast
+  struct data_struct *pdata = (struct data_struct *)data;
+  MY_TYPE *out_buffer = (MY_TYPE *)output_buffer;
+  MY_TYPE *in_buffer = (MY_TYPE *)input_buffer;
+
+  // Short variables
+  unsigned long L = (unsigned long)n_buffer_frames;
+  unsigned long M = (unsigned long)pdata->ir_size;
+
+  // Compute current buffer convolution
+  tconv(in_buffer, L, pdata->ir_buffer, M, pdata->curr_conv_buffer, L + M - 1);
+
+  // Achieve overlap-add (also filling the output audio buffer)
+  overlap_add(pdata, out_buffer, n_buffer_frames);
+
+  // Fill stats
+  fill_stats(pdata);
+
+  return 0;
+}
+
+int reverb_f(void *output_buffer, void *input_buffer, unsigned int n_buffer_frames,
+              double streamTime, RtAudioStreamStatus status, void *data)
+{
+  // Check for over/under run
+  // if (status)
+  // {
+  //   std::cout << "Stream over/underflow detected." << std::endl;
+  // }
+
+  // Cast
+  struct data_struct *pdata = (struct data_struct *)data;
+  MY_TYPE *out_buffer = (MY_TYPE *)output_buffer;
+  MY_TYPE *in_buffer = (MY_TYPE *)input_buffer;
+
+  // Short variables
+  unsigned long L = (unsigned long)n_buffer_frames;
+  unsigned long M = (unsigned long)pdata->ir_size;
+
+  // Compute current buffer convolution
+  fconv(in_buffer, L, pdata->curr_conv_buffer, L + M - 1, pdata);
+
+  // Achieve overlap-add (also filling the output audio buffer)
+  overlap_add(pdata, out_buffer, n_buffer_frames);
+
+  // Fill stats
+  fill_stats(pdata);
+
+  return 0;
+}
+
+/**
+ * Achieve overlap-add.
+ * 
+ * This add the previous overlapping part to `pdata->curr_conv_buffer`, 
+ * fill `out_buffer` with the output for the current window,
+ * and register the next overlapping part to `pdata->prev_conv_buffer`.
+ * 
+ * pdata->curr_conv_buffer must already be filled with the result of the
+ * convolution between current input audio buffer and the impulse
+ * response.
+ * pdata->prev_conv_buffer must already be filled with the overlapping
+ * result of the convolution between previous output buffer and the
+ * impulse response.
+ * 
+ * @param pdata Pointer to a `data_struct` strcuture, defined in mydef.h
+ * @param out_buffer Pointer to the output audio buffer to be filled
+ * with the result
+ * @param n_buffer_frames Size of the output audio buffer
+ */
+int overlap_add(struct data_struct *pdata, MY_TYPE *out_buffer, unsigned int n_buffer_frames)
+{
+
+  // Short variables // TODO remove unsigned long, only unsigned int for size variables
+  unsigned long L = (unsigned long)n_buffer_frames;
+  unsigned long M = (unsigned long)pdata->ir_size;
+
+  // Separate cases to be more efficient
+  if (M - 1 > L)
   {
-    kmin = idx - h_size;
+    for (int i = 0; i < L; i++)
+    {
+      // Add the first L points of the previous overlapping part to pdata->curr_conv_buffer
+      pdata->curr_conv_buffer[i] += pdata->prev_conv_buffer[i];
+
+      // Fill the output audio buffer
+      out_buffer[i] = pdata->curr_conv_buffer[i];
+    }
+    for (int i = L; i < M - 1; i++)
+    {
+      // Add the remaining points of the previous overlapping part to pdata->curr_conv_buffer
+      pdata->curr_conv_buffer[i] += pdata->prev_conv_buffer[i];
+
+      // Fill first points of the overlapping part with next buffer
+      pdata->prev_conv_buffer[i - L] = pdata->curr_conv_buffer[i];
+    }
+    for (int i = M - 1; i < L + M - 1; i++)
+    {
+      // Fill remaining points of the overlapping part with next buffer
+      pdata->prev_conv_buffer[i - L] = pdata->curr_conv_buffer[i];
+    }
   }
-  else
+  else // case M-1 <= L
   {
-    kmin = 0;
+    for (int i = 0; i < M - 1; i++)
+    {
+      // Add the M-1 points of the previous overlapping part to pdata->curr_conv_buffer
+      pdata->curr_conv_buffer[i] += pdata->prev_conv_buffer[i];
+
+      // Fill the output audio buffer
+      out_buffer[i] = pdata->curr_conv_buffer[i];
+    }
+    for (int i = M - 1; i < L; i++) // nothing if M-1 == L
+    {
+      // Fill the remaining points of the output audio buffer
+      out_buffer[i] = pdata->curr_conv_buffer[i];
+    }
+    for (int i = L; i < L + M - 1; i++)
+    {
+      // Fill the M-1 points of the overlapping part with next buffer
+      pdata->prev_conv_buffer[i - L] = pdata->curr_conv_buffer[i];
+    }
   }
-  if (idx <= x_size)
+  
+  return 0;
+}
+
+/**
+ * Not optimized version of overlap add.
+ * 
+ * See `overlap_add`.
+ */
+int overlap_add2(struct data_struct *pdata, MY_TYPE *out_buffer, unsigned int n_buffer_frames)
+{
+
+  // Short variables // TODO remove unsigned long, only unsigned int for size variables
+  unsigned long L = (unsigned long)n_buffer_frames;
+  unsigned long M = (unsigned long)pdata->ir_size;
+
+  // Add the previous overlapping part to pdata->curr_conv_buffer
+  for (int i = 0; i < M; i++)
   {
-    kmax = idx; // Todo vérifier si -1
-  }
-  else
-  {
-    kmax = x_size; // Todo vérifier si -1
+    pdata->curr_conv_buffer[i] += pdata->prev_conv_buffer[i];
   }
 
-  for (int k = kmin; k < kmax; k++)
+  // Fill overlap with next buffer
+  for (int i = L; i < L + M; i++)
   {
-    c += x[k] * h[idx - k];
+    pdata->prev_conv_buffer[i - L] = pdata->curr_conv_buffer[i];
   }
 
-  return c;
+  // Fill output buffer
+  for (int i = 0; i < L; i++)
+  {
+    out_buffer[i] = pdata->curr_conv_buffer[i];
+  }
+
+  return 0;
 }

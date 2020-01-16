@@ -16,7 +16,8 @@ mkdir build
 cd build
 cmake ..
 make
-./${workspaceFolderBasename} 1 44100
+cd ..
+./build/${workspaceFolderBasename} 1 44100
 ```
 
 where `${workspaceFolderBasename}` might be `tstr` or `tstr-master`.

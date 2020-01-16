@@ -38,9 +38,7 @@ struct data_struct
   MY_TYPE *curr_conv_buffer; // L+M-1
   MY_TYPE *prev_conv_buffer; // M-1
 
-  double *stats;
-  unsigned long stats_size;
-  unsigned long statpos;
+  int fft_size;
 
   MY_TYPE *Xr;
   MY_TYPE *Xi;
@@ -49,7 +47,9 @@ struct data_struct
   MY_TYPE *Yr;
   MY_TYPE *Yi;
 
-  int fft_size;
+  double *stats;
+  unsigned long stats_size;
+  unsigned long statpos;
 };
 
 #endif

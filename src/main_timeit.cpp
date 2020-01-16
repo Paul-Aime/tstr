@@ -26,16 +26,16 @@
 int main(int argc, char *argv[])
 {
   // Callback executed between input and ouput buffer
-  RtAudioCallback ptr_callback = &reverb_f;
+  RtAudioCallback ptr_callback = &reverb_f2;
 
   // Parameters to analyse processing time
-  int n_buff_size_min = 6; // linspace on input buffer size axis
+  int n_buff_size_min = 7; // linspace on input buffer size axis
   int n_buff_size_max = 10;
   int n_buff_size = n_buff_size_max - n_buff_size_min + 1;
-  int n_ir_size_min = 6; // linspace on impulse response buffer size axis
+  int n_ir_size_min = 9; // linspace on impulse response buffer size axis
   int n_ir_size_max = 12;
   int n_ir_size = n_ir_size_max - n_ir_size_min + 1;
-  int n_buffers = 1000; // Number of buffer per point
+  int n_buffers = 100; // Number of buffer per point
 
   // 2D array to store durations
   double **proc_duration = (double **)malloc(sizeof(double *) * n_buff_size);
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     n_proc_buffers[i] = (int *)malloc(n_ir_size * sizeof(int));
 
   // 1D array to store buffers' size
-  unsigned int *buffs_size = (unsigned int *)malloc(sizeof(unsigned int) * n_buff_size);
+  unsigned int *buffs_size = (unsigned int *)malloc(sizeof(unsigned int) * n_buff_size); 
 
   // 1D array to store impulse response size
   unsigned long *irs_size = (unsigned long *)malloc(sizeof(unsigned long) * n_ir_size);
@@ -74,8 +74,6 @@ int main(int argc, char *argv[])
       */
       char ir_path[] = "./data/impres";
       MY_TYPE *ir_buffer;
-      //unsigned long ir_size = 512; // 4096
-
       load_impulse_response(ir_path, &ir_buffer, &ir_size);
 
       /*
@@ -99,7 +97,7 @@ int main(int argc, char *argv[])
       Create structure containing data to be pass as arguments to the callback
       */
       MY_TYPE *curr_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size + bufferFrames - 1));
-      MY_TYPE *prev_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size + bufferFrames - 1));
+      MY_TYPE *prev_conv_buffer = (MY_TYPE *)malloc(sizeof(MY_TYPE) * (ir_size - 1)); // ? Bon ? 
       if (curr_conv_buffer == NULL || prev_conv_buffer == NULL)
       {
         fputs("Memory error", stderr);
@@ -109,9 +107,21 @@ int main(int argc, char *argv[])
       double *stats = (double *)malloc(sizeof(double) * stats_size);
       unsigned long statpos = 0;
 
+      int fft_size = get_nextpow2(ir_size + bufferFrames - 1);
+      MY_TYPE *Xr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+      MY_TYPE *Xi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+      MY_TYPE *Yr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+      MY_TYPE *Yi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+
+      MY_TYPE *Hr = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+      MY_TYPE *Hi = (MY_TYPE *)malloc(sizeof(MY_TYPE) * fft_size);
+      memcpy(Hr, ir_buffer, ir_size * sizeof(MY_TYPE));
+      fftr((double *)Hr, (double *)Hi, fft_size);
+
       struct data_struct data = {ir_buffer, ir_size,
-                                 curr_conv_buffer, prev_conv_buffer,
-                                 stats, stats_size, statpos};
+                                curr_conv_buffer, prev_conv_buffer,
+                                stats, stats_size, statpos,
+                                Xr, Xi, Yr, Yi, Hr, Hi, fft_size};
 
       /*
       Open stream
@@ -143,7 +153,7 @@ int main(int argc, char *argv[])
         // std::cin.get(input);
 
         // Get buffer len info in seconds
-        double buffer_len = double(bufferFrames) * 1. / (double(fs));
+        double buffer_len = bufferFrames * (1. / fs);
 
         // Sleep for a while
         int sleep_for_ms = (int)(buffer_len * 1e3 * n_buffers);

@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "mydef.h"
 #include "RtAudio.h"
+#include "somefunc.h"
 
 void load_impulse_response(char *ir_path, MY_TYPE **ir_buffer, unsigned long *ir_size)
 {
@@ -106,4 +107,25 @@ void usage(void)
   std::cout << "    iChannelOffset = an optional input channel offset (default = 0),\n";
   std::cout << "    and oChannelOffset = optional output channel offset (default = 0).\n\n";
   exit(0);
+}
+
+int fill_stats(struct data_struct *pdata)
+{
+  pdata->statpos += 1;
+  if (pdata->statpos >= pdata->stats_size) // i.e. pdata->stats array is not tall enough
+  {
+    // Re-allocate memory for new array
+    pdata->stats = (double *)realloc(pdata->stats, 2 * pdata->stats_size * sizeof(double));
+
+    if (pdata->stats == NULL)
+    {
+      fputs("Memory re-allocation error", stderr);
+      exit(2);
+    }
+
+    pdata->stats_size = 2 * pdata->stats_size;
+  }
+  pdata->stats[pdata->statpos] = get_process_time();
+
+  return 0;
 }
