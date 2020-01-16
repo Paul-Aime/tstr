@@ -2,21 +2,32 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import fileinput
+
+
 
 def main():
     fs = 44100
     Ts = 1/fs
 
-    suffix = "_f"
+    suffix = "_tmp"
 
-    rows = pd.read_csv("rows_buffs_size" + suffix +
-                       ".csv", header=None).to_numpy()
-    cols = pd.read_csv("cols_irs_size" + suffix +
-                       ".csv", header=None).to_numpy()
-    buffs_n = pd.read_csv("n_proc_buffers" + suffix +
-                          ".csv", header=None).to_numpy()
-    proc = pd.read_csv("proc_duration" + suffix +
-                       ".csv", header=None).to_numpy()
+    rows_fname = "rows_buffs_size" + suffix + ".csv"
+    cols_fname = "cols_irs_size" + suffix + ".csv"
+    buffs_fname = "n_proc_buffers" + suffix + ".csv"
+    proc_fname = "proc_duration" + suffix + ".csv"
+
+    # Pre-processing to remove unwanted last comma
+    # (more easy to remove here than in c++)
+    pre_process(rows_fname)
+    pre_process(cols_fname)
+    pre_process(buffs_fname)
+    pre_process(proc_fname)
+
+    rows = pd.read_csv(rows_fname, header=None).to_numpy()
+    cols = pd.read_csv(cols_fname, header=None).to_numpy()
+    buffs_n = pd.read_csv(buffs_fname, header=None).to_numpy()
+    proc = pd.read_csv(proc_fname, header=None).to_numpy()
 
     print(rows)
     print('\n')
@@ -43,6 +54,12 @@ def main():
     plt.savefig(os.path.join('../img/', 'graph' + suffix + '_tmp.png'))
     plt.show()
 
+
+def pre_process(csv_path):
+
+    for line in fileinput.input(csv_path, inplace=True):
+        # The standard output is redirected to the original file within the loop
+        print('{}'.format(line.rstrip(',;\n')), end='\n') # for Python 3
 
 if __name__ == "__main__":
     main()
